@@ -1,0 +1,1105 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>자라다 재료 요청</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<style>
+:root{
+  --brand-orange:#DE8619; --brand-yellow:#FECD3F; --warn-yellow:#F6DF20;
+  --warn-black:#141A1E; --tape:14px; --bar:56px;
+  --slot-navy:#1E3A5F;
+  --ink:#222222; --ink-deep:#161616; --panel-dark:#323232;
+  --text:#4E4E4E; --text-sub:#767676; --bg:#F5F5F5; --line:#EEEEEE;
+  --r-card:8px; --r-btn:6px; --sp:4px;
+  --font:'Pretendard',-apple-system,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14px;line-height:1.5}
+.num{font-variant-numeric:tabular-nums}
+
+/* ── 크롬 3단 ── */
+.topbar{background:var(--ink-deep);color:#C9C9C9;font-size:12px;padding:6px 16px;display:flex;gap:16px;align-items:center;justify-content:space-between}
+.topbar b{color:#fff;font-weight:600}
+.appbar{background:var(--brand-yellow);color:var(--ink);padding:0 16px;display:flex;align-items:center;gap:24px;position:sticky;top:0;z-index:20}
+.appbar .logo{font-weight:800;font-size:17px;padding:12px 0;letter-spacing:-.02em}
+.appbar nav{display:flex;gap:4px;flex:1}
+.appbar nav button{background:none;border:0;font-family:inherit;font-size:14px;font-weight:600;color:var(--ink);padding:14px 14px;cursor:pointer;border-bottom:3px solid transparent}
+.appbar nav button[aria-current="page"]{border-bottom-color:var(--ink)}
+.appbar nav button:hover{background:rgba(0,0,0,.06)}
+.appbar .who{font-size:12px;font-weight:600;display:flex;align-items:center;gap:8px}
+main{max-width:1280px;margin:0 auto;padding:24px 16px 64px}
+
+/* ── 공통 ── */
+.card{background:#fff;border:1px solid var(--line);border-radius:var(--r-card);padding:16px}
+.sect{margin-bottom:24px}
+h2{font-size:18px;font-weight:700;color:var(--ink);margin:0 0 4px}
+h3{font-size:14px;font-weight:700;color:var(--ink);margin:0 0 8px}
+.sub{color:var(--text-sub);font-size:13px;margin:0 0 16px}
+.btn{font-family:inherit;font-size:14px;font-weight:600;border-radius:var(--r-btn);padding:9px 16px;cursor:pointer;border:1px solid transparent}
+.btn-primary{background:var(--brand-orange);color:#fff}
+.btn-primary:hover{filter:brightness(.93)}
+.btn-primary:disabled{background:#D8D8D8;color:#fff;cursor:not-allowed}
+.btn-sec{background:#fff;border-color:var(--line);color:var(--text)}
+.btn-sec:hover{background:#FAFAFA}
+.btn-danger{background:var(--ink);color:var(--warn-yellow)}
+.btn-sm{padding:5px 10px;font-size:13px}
+input,select,textarea{font-family:inherit;font-size:14px;color:var(--text);border:1px solid var(--line);border-radius:var(--r-btn);padding:8px 10px;background:#fff;width:100%}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--brand-orange);outline-offset:-1px;border-color:var(--brand-orange)}
+label{display:block;font-size:12px;font-weight:600;color:var(--text-sub);margin-bottom:4px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end}
+.badge{display:inline-block;font-size:11px;font-weight:700;padding:2px 6px;border-radius:4px;background:var(--line);color:var(--text-sub)}
+.badge-off{background:#E4EEF5;color:#1968A1}
+.badge-hq{background:#FBE9D4;color:#9A5A08}
+.badge-base{background:#E7ECF2;color:var(--slot-navy)}
+.badge-new{background:#F3E3F7;color:#7B2D8E}
+.badge-pool{background:#E3F2E6;color:#11722F}
+.ob-r{display:flex;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line)}
+.ob-r.done{opacity:.45}
+.ob-r .ob-n{flex:1;min-width:0}
+.ob-r .ob-n b{font-size:14px;color:var(--ink)}
+.ob-r .ob-n .s{font-size:12px;color:var(--text-sub);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ob-r .ob-q{font-weight:800;font-size:16px;color:var(--brand-orange);min-width:44px;text-align:right}
+#toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(20px);background:var(--ink-deep);color:#fff;
+  padding:10px 18px;border-radius:var(--r-btn);font-size:13px;font-weight:600;opacity:0;pointer-events:none;transition:.18s;z-index:200}
+#toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+.hint{border:1px solid var(--line);border-radius:var(--r-btn);padding:8px;margin-top:8px;background:#FAFAFA}
+.hint .h{font-size:12px;font-weight:700;color:var(--brand-orange);margin-bottom:6px}
+.hint .r{display:flex;gap:8px;align-items:center;padding:4px 0}
+.hint .r > div{flex:1;min-width:0}
+.hint .r b{font-size:13px;color:var(--ink)}
+.hint .r .s{font-size:12px;color:var(--text-sub);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.empty{text-align:center;color:var(--text-sub);padding:48px 16px;border:1px dashed #DDD;border-radius:var(--r-card);background:#fff}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;background:var(--slot-navy);color:#fff;font-weight:600;padding:8px 10px;font-size:12px;position:sticky;top:50px}
+td{padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+#catBody td{white-space:nowrap}
+#catBody td:nth-child(3){white-space:normal;min-width:180px}
+tr:hover td{background:#FAFAFA}
+.right{text-align:right}
+.tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:var(--r-card);border:1px solid var(--line);background:#fff}
+.tbl-wrap table{min-width:720px}
+.tbl-wrap.wide table{min-width:1020px}
+.tbl-wrap::-webkit-scrollbar{height:8px}
+.tbl-wrap::-webkit-scrollbar-thumb{background:#CFCFCF;border-radius:4px}
+.scroll-note{font-size:12px;color:var(--text-sub);margin:6px 0 0;display:none}
+.scroll-note.on{display:block}
+.bulk{display:none;gap:8px;align-items:center;background:var(--slot-navy);color:#fff;padding:10px 12px;
+  border-radius:var(--r-card);margin-bottom:8px;flex-wrap:wrap;font-size:13px}
+.bulk.on{display:flex}
+.bulk.busy{opacity:.6;pointer-events:none}
+.bulk b{font-weight:800}
+.bulk .sep{width:1px;height:20px;background:rgba(255,255,255,.3)}
+#catBody tr.sel td{background:#FFF7E8}
+#catBody tr.sel:hover td{background:#FFF3DC}
+tr.grp td{background:#EFF2F5;border-top:2px solid var(--slot-navy);padding:10px;font-size:13px}
+tr.grp-pool td{background:#E7F4EA;border-top-color:#11722F}
+tr.sub td{background:#F7F8FA;border-bottom:1px solid var(--line);padding:6px 10px;font-size:12px}
+tr.sub:hover td{background:#F7F8FA}
+tr.sub .site{font-weight:800;color:var(--slot-navy);margin-right:8px}
+.badge-fix{background:#E7ECF2;color:#1E3A5F}
+.badge-sea{background:#F1F1F1;color:#767676}
+.vgrp{margin-bottom:24px}
+.vhead{background:var(--slot-navy);color:#fff;padding:8px 12px;border-radius:var(--r-card) var(--r-card) 0 0;font-size:14px}
+.vhead .brk{color:#C3D0DD}
+.vgrp .grid{border:1px solid var(--line);border-top:0;border-radius:0 0 var(--r-card) var(--r-card);padding:12px;background:#fff}
+tr.grp-pool:hover td{background:#E7F4EA}
+tr.grp:hover td{background:#EFF2F5}
+
+/* ── 경고 스트라이프 ── */
+.warn-bar{height:10px;background:repeating-linear-gradient(90deg,var(--warn-yellow) 0 var(--bar),var(--warn-black) var(--bar) calc(var(--bar)*2))}
+.warn-frame{position:relative;padding:var(--tape);box-sizing:border-box}
+.warn-frame .inner{background:#fff;padding:20px;position:relative;z-index:1}
+.warn-frame i{position:absolute;display:block}
+.warn-frame .l,.warn-frame .r{top:0;bottom:0;width:var(--tape);background:repeating-linear-gradient(180deg,var(--warn-yellow) 0 var(--bar),var(--warn-black) var(--bar) calc(var(--bar)*2))}
+.warn-frame .l{left:0}.warn-frame .r{right:0}
+.warn-frame .t,.warn-frame .b{left:var(--tape);right:var(--tape);height:var(--tape);background:repeating-linear-gradient(90deg,var(--warn-yellow) 0 var(--bar),var(--warn-black) var(--bar) calc(var(--bar)*2))}
+.warn-frame .t{top:0}.warn-frame .b{bottom:0}
+
+/* ── 모달 ── */
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;align-items:center;justify-content:center;z-index:100;padding:16px}
+.modal.on{display:flex}
+.modal-box{background:#fff;border-radius:var(--r-card);max-width:560px;width:100%;max-height:88vh;overflow:auto}
+.modal-head{background:var(--panel-dark);color:#fff;padding:12px 16px;font-weight:700;display:flex;justify-content:space-between;align-items:center}
+.modal-head button{background:none;border:0;color:#fff;font-size:20px;cursor:pointer;line-height:1}
+.modal-body{padding:16px}
+.modal-foot{padding:12px 16px;border-top:1px solid var(--line);display:flex;gap:8px;justify-content:flex-end}
+
+/* ── 요청하기 ── */
+.filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.filters input{flex:1;min-width:200px}
+.filters select{width:auto;min-width:140px}
+.chips{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:16px}
+.chip{font-size:12px;font-weight:600;padding:5px 10px;border-radius:14px;border:1px solid var(--line);background:#fff;color:var(--text-sub);cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--ink);color:#fff;border-color:var(--ink)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(248px,1fr));gap:8px}
+.item{background:#fff;border:1px solid var(--line);border-radius:var(--r-card);padding:12px;display:flex;flex-direction:column;gap:6px}
+.item h4{margin:0;font-size:14px;font-weight:700;color:var(--ink)}
+.item .meta{font-size:12px;color:var(--text-sub);white-space:pre-line;max-height:3.2em;overflow:hidden}
+.item .tags{display:flex;gap:4px;flex-wrap:wrap}
+.item .act{margin-top:auto;display:flex;gap:4px;align-items:center}
+.item .act input{width:72px;text-align:right}
+
+/* ── 장바구니 ── */
+.cart{position:fixed;right:16px;bottom:16px;z-index:30}
+.cart button{box-shadow:0 4px 16px rgba(0,0,0,.18);padding:12px 20px;font-size:15px}
+.cart .n{background:#fff;color:var(--brand-orange);border-radius:10px;padding:1px 7px;margin-left:6px;font-weight:800}
+
+/* ── 모아보기 ── */
+.sum{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;margin-bottom:24px}
+.sum .box{background:#fff;border:1px solid var(--line);border-radius:var(--r-card);padding:16px}
+.sum .box .k{font-size:12px;color:var(--text-sub);font-weight:600}
+.sum .box .v{font-size:26px;font-weight:800;color:var(--brand-orange);letter-spacing:-.02em}
+.st{font-size:11px;font-weight:700;padding:2px 7px;border-radius:4px;white-space:nowrap}
+.st-req{background:#FBE9D4;color:#9A5A08}
+.st-cart{background:#E4EEF5;color:#1968A1}
+.st-done{background:#E3F2E6;color:#11722F}
+.brk{font-size:12px;color:var(--text-sub)}
+.brk b{color:var(--text);font-weight:700}
+
+@media(max-width:768px){
+  main{padding:16px 12px 64px}
+  .appbar{gap:8px;overflow-x:auto}
+  .appbar .logo{font-size:15px}
+  .appbar nav button{padding:14px 8px;font-size:13px}
+  .grid{grid-template-columns:1fr}
+  th{position:static}
+}
+@media print{
+  .appbar,.topbar,.cart,.filters,.chips,.btn{display:none!important}
+  body{font-size:11px}
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <span>자라다 재료 요청 · 3개 원 통합</span>
+  <span><b id="whoami">로그인 필요</b> · <span id="today"></span></span>
+</div>
+
+<div class="appbar">
+  <div class="logo">자라다 재료</div>
+  <nav>
+    <button data-tab="req" aria-current="page">온라인 주문요청</button>
+    <button data-tab="off">거래처 주문요청</button>
+    <button data-tab="agg">모아보기</button>
+    <button data-tab="cat">품목관리</button>
+  </nav>
+  <div class="who"><button class="btn btn-sec btn-sm" id="authBtn">로그인</button></div>
+</div>
+
+<main>
+  <!-- 요청하기 -->
+  <div class="card" id="requester" style="margin-bottom:24px">
+    <div class="row">
+      <div style="flex:0 0 160px"><label for="fBranch">요청하는 원</label>
+        <select id="fBranch"><option value="평촌">평촌원</option><option value="반포">반포원</option><option value="대치">대치원</option></select>
+      </div>
+      <div style="flex:1;min-width:180px"><label for="fWho">요청자 이름</label><input id="fWho" placeholder="예: 김선생"></div>
+    </div>
+  </div>
+
+  <section id="tab-req">
+    <div class="sect">
+      <h2>온라인 주문요청</h2>
+      <p class="sub">쇼핑몰에서 사는 재료입니다. 필요한 걸 골라 수량을 넣으세요.</p>
+      <div class="filters">
+        <input id="q" placeholder="품목 검색 (예: 도화지, 레진, 테이프)">
+        <button class="btn btn-sec" id="customBtn">목록에 없는 재료 요청</button>
+      </div>
+      <div class="chips" id="cats"></div>
+      <div class="grid" id="items"></div>
+    </div>
+  </section>
+
+  <!-- 거래처 주문요청 -->
+  <section id="tab-off" hidden>
+    <div class="sect">
+      <h2>거래처 주문요청</h2>
+      <p class="sub">본사와 오프라인 거래처에서 받는 재료입니다. 거래처별로 묶여 있고, 주문은 담당자가 거래처에 직접 넣습니다.</p>
+      <div class="filters">
+        <input id="qOff" placeholder="품목 검색">
+      </div>
+      <div id="offBody"></div>
+    </div>
+  </section>
+
+  <!-- 모아보기 -->
+  <section id="tab-agg" hidden>
+    <div class="sect">
+      <h2>요청 모아보기</h2>
+      <p class="sub">원별로, 그 안에서 다시 구매처별로 묶었습니다. 구매처마다 주문 준비를 누르면 그 쇼핑몰 것만 한꺼번에 열립니다. 품목별 보기로 바꾸면 같은 재료를 원마다 얼마에 샀는지 비교할 수 있습니다.</p>
+      <div class="sum" id="sum"></div>
+      <div class="filters">
+        <select id="aView" style="width:auto"><option value="branch">원별 보기</option><option value="item">품목별 보기</option></select>
+        <select id="aSt" style="width:auto"><option value="요청">요청 대기</option><option value="장바구니">장바구니 담음</option><option value="주문완료">주문 완료</option><option value="">전체</option></select>
+        <select id="aCh" style="width:auto"><option value="">구매경로 전체</option><option value="on">온라인만</option><option value="off">오프라인 거래처만</option></select>
+        <button class="btn btn-sec" id="printBtn">인쇄</button>
+      </div>
+      <p class="scroll-note" id="aggNote">표를 옆으로 밀면 나머지 열이 보입니다.</p>
+      <div class="tbl-wrap"><table id="aggTbl"><thead id="aggHead"></thead><tbody id="aggBody"></tbody></table></div>
+    </div>
+  </section>
+
+  <!-- 품목관리 -->
+  <section id="tab-cat" hidden>
+    <div class="sect">
+      <h2>품목관리</h2>
+      <p class="sub">마스터 품목 <span class="num" id="catN">0</span>건 중 <span class="num" id="catShown">0</span>건 표시. 규격이 비어 있으면 요청할 때 입력을 받습니다. <b>구매처</b>를 지정하면 모아보기에서 구매처별로 묶여 한꺼번에 주문할 수 있습니다. <b>본사월</b>은 본사에서 받아야 하는 달입니다. 해마다 바뀌니 연초에 일괄로 다시 지정하세요. <b>분배</b>는 부피가 작아 들고 옮길 수 있는 소수 품목에만 켜세요 — 기본은 원별 배송입니다. <b>상품주소</b>는 기본이 네이버쇼핑 검색입니다. 늘 같은 상품을 산다면 등록해서 확정해 두세요.</p>
+      <div class="filters">
+        <input id="cq" placeholder="품목 검색">
+        <button class="btn btn-primary" id="addBtn">새 품목 추가</button>
+      </div>
+      <div class="chips" id="cqFilters">
+        <button class="chip" data-f="" aria-pressed="true">전체</button>
+        <button class="chip" data-f="nosite" aria-pressed="false">구매처 미지정</button>
+        <button class="chip" data-f="nospec" aria-pressed="false">규격 없음</button>
+        <button class="chip" data-f="nourl" aria-pressed="false">상품주소 미등록</button>
+        <button class="chip" data-f="hq" aria-pressed="false">본사 지정</button>
+        <button class="chip" data-f="pool" aria-pressed="false">분배 켬</button>
+      </div>
+      <div class="bulk" id="bulkBar">
+        <b><span class="num" id="bulkN">0</span>개 선택</b>
+        <select id="bulkSite" style="width:auto"></select>
+        <button class="btn btn-primary btn-sm" id="bulkSiteGo">구매처 적용</button>
+        <span class="sep"></span>
+        <input id="bulkHq" placeholder="본사월 (예: 5월)" style="width:132px;padding:5px 8px;font-size:13px">
+        <button class="btn btn-primary btn-sm" id="bulkHqGo">본사월 적용</button>
+        <span class="sep"></span>
+        <button class="btn btn-sec btn-sm" id="bulkPoolOn">분배 켜기</button>
+        <button class="btn btn-sec btn-sm" id="bulkPoolOff">분배 끄기</button>
+        <button class="btn btn-sec btn-sm" id="bulkClear" style="margin-left:auto">선택 해제</button>
+      </div>
+      <p class="scroll-note" id="catNote">표를 옆으로 밀면 나머지 열이 보입니다.</p>
+      <div class="tbl-wrap wide"><table><thead><tr>
+        <th style="width:36px"><input type="checkbox" id="catAll" aria-label="전체 선택" style="width:auto;margin:0"></th>
+        <th style="width:12%">분류</th><th style="width:20%">품목명</th><th style="width:24%">규격</th>
+        <th style="width:15%">구매처</th><th style="width:11%">기준단가</th><th style="width:8%">본사월</th><th style="width:8%">분배</th><th style="width:9%">상품주소</th><th style="width:10%"></th>
+      </tr></thead><tbody id="catBody"></tbody></table></div>
+    </div>
+  </section>
+</main>
+
+<div class="cart"><button class="btn btn-primary" id="cartBtn">요청 담기<span class="n num" id="cartN">0</span></button></div>
+
+<!-- 규격 입력 모달 -->
+<div class="modal" id="specModal"><div class="modal-box">
+  <div class="modal-head"><span>규격을 입력해 주세요</span><button data-close>&times;</button></div>
+  <div class="modal-body">
+    <p class="sub" style="margin-bottom:12px">이 품목은 등록된 규격이 없습니다. 담당자가 검색해서 살 수 있도록 크기·색상·용량을 적어 주세요.</p>
+    <h3 id="smName"></h3>
+    <label for="smSpec">규격</label>
+    <input id="smSpec" placeholder="예: 8절 170g 125매 / 흰색">
+  </div>
+  <div class="modal-foot"><button class="btn btn-sec" data-close>취소</button><button class="btn btn-primary" id="smOk">담기</button></div>
+</div></div>
+
+<!-- 목록에 없는 재료 요청 -->
+<div class="modal" id="customModal"><div class="modal-box">
+  <div class="modal-head"><span>목록에 없는 재료 요청</span><button data-close>&times;</button></div>
+  <div class="modal-body">
+    <label for="xName">재료 이름</label>
+    <input id="xName" placeholder="예: 우드스틱" autocomplete="off">
+    <div id="xHints"></div>
+    <label for="xSpec" style="margin-top:12px">규격 <span style="color:var(--brand-orange)">필수</span></label>
+    <input id="xSpec" placeholder="예: 공예용 114mm 1000개 / 흰색">
+    <div class="row" style="margin-top:12px">
+      <div style="flex:0 0 112px"><label for="xQty">수량</label><input id="xQty" type="number" min="1" step="1" class="num"></div>
+      <div style="flex:1;min-width:180px"><label for="xUrl">참고 링크 (선택)</label><input id="xUrl" placeholder="상품 주소를 알면 붙여넣기"></div>
+    </div>
+    <label for="xWhy" style="margin-top:12px">어디에 쓰나요 (선택)</label>
+    <input id="xWhy" placeholder="예: 5월 자동차 만들기 수업">
+    <p class="sub" style="margin:12px 0 0">담당자가 확인한 뒤 정식 품목으로 등록합니다. 그 전까지는 요청 목록에만 보입니다.</p>
+  </div>
+  <div class="modal-foot"><button class="btn btn-sec" data-close>취소</button><button class="btn btn-primary" id="xOk">요청 담기</button></div>
+</div></div>
+
+<!-- 장바구니 모달 -->
+<div class="modal" id="cartModal"><div class="modal-box">
+  <div class="modal-head"><span>요청 내용 확인</span><button data-close>&times;</button></div>
+  <div class="modal-body"><div id="cartList"></div>
+    <label for="cMemo" style="margin-top:16px">메모 (선택)</label>
+    <textarea id="cMemo" rows="2" placeholder="예: 5월 둘째 주 수업에 필요"></textarea>
+  </div>
+  <div class="modal-foot"><button class="btn btn-sec" data-close>더 담기</button><button class="btn btn-primary" id="submitBtn">요청 등록</button></div>
+</div></div>
+
+<!-- 신규 품목 모달 -->
+<div class="modal" id="newModal"><div class="modal-box">
+  <div class="modal-head"><span>새 품목 추가</span><button data-close>&times;</button></div>
+  <div class="modal-body">
+    <label for="nName">품목명</label><input id="nName" placeholder="예: 우드스틱">
+    <label for="nSpec" style="margin-top:12px">규격 <span style="color:var(--brand-orange)">필수</span></label>
+    <input id="nSpec" placeholder="예: 공예용 114mm 1000개">
+    <label for="nCat" style="margin-top:12px">분류</label><select id="nCat"></select>
+    <label for="nVendor" style="margin-top:12px">구매처 (선택)</label><input id="nVendor" placeholder="예: 네이버">
+    <label for="nUrl" style="margin-top:12px">상품 페이지 주소 (선택)</label><input id="nUrl" placeholder="주소를 넣어두면 주문할 때 바로 열립니다">
+    <p class="sub" style="margin:12px 0 0">같은 물건이 다른 이름으로 또 등록되면 중복이 다시 쌓입니다. 추가 전에 품목관리에서 검색부터 해보세요.</p>
+  </div>
+  <div class="modal-foot"><button class="btn btn-sec" data-close>취소</button><button class="btn btn-primary" id="nOk">추가</button></div>
+</div></div>
+
+<!-- 주문 준비 -->
+<div class="modal" id="orderModal"><div class="modal-box" style="max-width:720px">
+  <div class="modal-head"><span id="obTitle">주문 준비</span><button data-close>&times;</button></div>
+  <div class="modal-body">
+    <p class="sub" id="obHint" style="margin-bottom:12px"></p>
+    <div id="obList"></div>
+  </div>
+  <div class="modal-foot">
+    <button class="btn btn-sec" id="obCopyAll">목록 전체 복사</button>
+    <button class="btn btn-sec" data-close>닫기</button>
+    <button class="btn btn-primary" id="obNext">상품 열기</button>
+  </div>
+</div></div>
+
+<!-- 요청 취소 확인 (파괴적) -->
+<div class="modal" id="delModal"><div class="modal-box" style="max-width:460px">
+  <div class="warn-frame">
+    <i class="l"></i><i class="r"></i><i class="t"></i><i class="b"></i>
+    <div class="inner">
+      <h3 style="margin-bottom:8px">요청을 삭제합니다</h3>
+      <p class="sub" style="margin:0 0 4px" id="delWhat"></p>
+      <p class="sub" style="margin:0">되돌릴 수 없습니다. 이미 주문한 건이면 삭제하지 마세요.</p>
+      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:20px">
+        <button class="btn btn-sec" data-close>그만두기</button>
+        <button class="btn btn-danger" id="delOk">삭제</button>
+      </div>
+    </div>
+  </div>
+</div></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getFirestore, collection, doc, setDoc, addDoc, deleteDoc, updateDoc,
+  onSnapshot, getDocs, writeBatch, serverTimestamp, query, orderBy }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+// ───────────────────────────────────────────────
+// 여기만 바꾸면 됩니다. Firebase 콘솔 > 프로젝트 설정 > 웹앱에서 복사.
+const firebaseConfig = {
+  apiKey: "AIzaSyCSPsm1kE336zBUaDX3A3D9NsIFSyoOJog",
+  authDomain: "jarada-materials.firebaseapp.com",
+  projectId: "jarada-materials",
+  storageBucket: "jarada-materials.firebasestorage.app",
+  messagingSenderId: "381345580244",
+  appId: "1:381345580244:web:eb8f585b58392a92db6741"
+};
+// ───────────────────────────────────────────────
+
+const SEED = [{"id":"M001","cat":"금속·판재","name":"고깔 루바망","spec":"","ch":"on","vendor":"","base":"","hq":"5월","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EA%B3%A0%EA%B9%94%20%EB%A3%A8%EB%B0%94%EB%A7%9D","site":"미지정"},{"id":"M002","cat":"금속·판재","name":"공캔, 알루미늄캔","spec":"","ch":"on","vendor":"네이버(파쎈코리아)","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EA%B3%B5%EC%BA%94%20%EC%95%8C%EB%A3%A8%EB%AF%B8%EB%8A%84%EC%BA%94","site":"네이버"},{"id":"M003","cat":"금속·판재","name":"금속엣지","spec":"","ch":"on","vendor":"","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EA%B8%88%EC%86%8D%EC%97%A3%EC%A7%80","site":"미지정"},{"id":"M004","cat":"금속·판재","name":"메쉬","spec":"","ch":"on","vendor":"","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EB%A9%94%EC%89%AC","site":"미지정"},{"id":"M005","cat":"금속·판재","name":"아연판","spec":"40×30","ch":"on","vendor":"11번가","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EC%95%84%EC%97%B0%ED%8C%90%2040%C3%9730","site":"11번가"},{"id":"M006","cat":"금속·판재","name":"알루미늄","spec":"","ch":"on","vendor":"11번가","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EC%95%8C%EB%A3%A8%EB%AF%B8%EB%8A%84","site":"11번가"},{"id":"M007","cat":"금속·판재","name":"알루미늄 판","spec":"20×20\n35×25","ch":"on","vendor":"엉클지","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EC%95%8C%EB%A3%A8%EB%AF%B8%EB%8A%84%20%ED%8C%90%2020%C3%9720","site":"기타"},{"id":"M008","cat":"금속·판재","name":"알루미늄호일","spec":"","ch":"on","vendor":"","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EC%95%8C%EB%A3%A8%EB%AF%B8%EB%8A%84%ED%98%B8%EC%9D%BC","site":"미지정"},{"id":"M009","cat":"금속·판재","name":"양철통","spec":"","ch":"on","vendor":"G마켓","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EC%96%91%EC%B2%A0%ED%86%B5","site":"G마켓"},{"id":"M010","cat":"금속·판재","name":"원형철판","spec":"","ch":"on","vendor":"쿠팡","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EC%9B%90%ED%98%95%EC%B2%A0%ED%8C%90","site":"쿠팡"},{"id":"M011","cat":"금속·판재","name":"호일","spec":"250mm×30m 30EA","ch":"on","vendor":"","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%ED%98%B8%EC%9D%BC%20250mm%C3%9730m%2030EA","site":"미지정"},{"id":"M012","cat":"기타","name":"투명 반구","spec":"소) 200개\n중\n특대\n특대) 100개","ch":"on","vendor":"네이버 / 핸즈코리아","base":"","hq":"9월","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%ED%88%AC%EB%AA%85%20%EB%B0%98%EA%B5%AC%20%EC%86%8C%29%20200%EA%B0%9C","site":"네이버"},{"id":"M013","cat":"기타","name":"페트 코일링","spec":"16mm 1kg","ch":"on","vendor":"","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%ED%8E%98%ED%8A%B8%20%EC%BD%94%EC%9D%BC%EB%A7%81%2016mm%201kg","site":"미지정"},{"id":"M014","cat":"기타","name":"피자세이버","spec":"2000개","ch":"on","vendor":"","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%ED%94%BC%EC%9E%90%EC%84%B8%EC%9D%B4%EB%B2%84%202000%EA%B0%9C","site":"미지정"},{"id":"M015","cat":"기타","name":"할수있다 백","spec":"","ch":"on","vendor":"자라다본사","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%ED%95%A0%EC%88%98%EC%9E%88%EB%8B%A4%20%EB%B0%B1","site":"본사"},{"id":"M016","cat":"기타","name":"홀로그램 PVC","spec":"","ch":"on","vendor":"","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%ED%99%80%EB%A1%9C%EA%B7%B8%EB%9E%A8%20PVC","site":"미지정"},{"id":"M017","cat":"끈·섬유","name":"가방끈","spec":"웨빙끈","ch":"on","vendor":"인터파크","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EA%B0%80%EB%B0%A9%EB%81%88%20%EC%9B%A8%EB%B9%99%EB%81%88","site":"기타"},{"id":"M018","cat":"끈·섬유","name":"가죽끈","spec":"검정, 100\n빨강, 100\n진밤색, 100\n흰색, 100","ch":"on","vendor":"","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EA%B0%80%EC%A3%BD%EB%81%88%20%EA%B2%80%EC%A0%95%20100","site":"미지정"},{"id":"M019","cat":"끈·섬유","name":"검정천","spec":"140×90, 10개","ch":"on","vendor":"","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EA%B2%80%EC%A0%95%EC%B2%9C%20140%C3%9790%2010%EA%B0%9C","site":"미지정"},{"id":"M020","cat":"끈·섬유","name":"고무밴드","spec":"","ch":"on","vendor":"G마켓","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EA%B3%A0%EB%AC%B4%EB%B0%B4%EB%93%9C","site":"G마켓"},{"id":"M021","cat":"끈·섬유","name":"광나 메탈릭 Craftwork펜 실버","spec":"6개, 골드 6개 1세트","ch":"on","vendor":"","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EA%B4%91%EB%82%98%20%EB%A9%94%ED%83%88%EB%A6%AD%20Craftwork%ED%8E%9C%20%EC%8B%A4%EB%B2%84%206%EA%B0%9C%20%EA%B3%A8%EB%93%9C%206%EA%B0%9C%201%EC%84%B8%ED%8A%B8","site":"미지정"},{"id":"M022","cat":"끈·섬유","name":"그물","spec":"50cm 5번.","ch":"on","vendor":"G마켓","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EA%B7%B8%EB%AC%BC%2050cm%205%EB%B2%88.","site":"G마켓"},{"id":"M023","cat":"끈·섬유","name":"레이스원단","spec":"","ch":"on","vendor":"테무","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EB%A0%88%EC%9D%B4%EC%8A%A4%EC%9B%90%EB%8B%A8","site":"테무"},{"id":"M024","cat":"끈·섬유","name":"밀리터리 밴드","spec":"","ch":"on","vendor":"","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EB%B0%80%EB%A6%AC%ED%84%B0%EB%A6%AC%20%EB%B0%B4%EB%93%9C","site":"미지정"},{"id":"M025","cat":"끈·섬유","name":"밴드 혼합형","spec":"","ch":"on","vendor":"쿠팡","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EB%B0%B4%EB%93%9C%20%ED%98%BC%ED%95%A9%ED%98%95","site":"쿠팡"},{"id":"M026","cat":"끈·섬유","name":"순면 밧줄 매듭끈","spec":"10mm","ch":"on","vendor":"","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EC%88%9C%EB%A9%B4%20%EB%B0%A7%EC%A4%84%20%EB%A7%A4%EB%93%AD%EB%81%88%2010mm","site":"미지정"},{"id":"M027","cat":"끈·섬유","name":"실링칼","spec":"","ch":"on","vendor":"","base":"","hq":"9월","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EC%8B%A4%EB%A7%81%EC%B9%BC","site":"미지정"},{"id":"M028","cat":"끈·섬유","name":"아이스크림 실리콘 트레이","spec":"","ch":"on","vendor":"G마켓","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EC%95%84%EC%9D%B4%EC%8A%A4%ED%81%AC%EB%A6%BC%20%EC%8B%A4%EB%A6%AC%EC%BD%98%20%ED%8A%B8%EB%A0%88%EC%9D%B4","site":"G마켓"},{"id":"M029","cat":"끈·섬유","name":"웨빙 스트랩","spec":"가방) 끈 25mm×100m","ch":"on","vendor":"","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EC%9B%A8%EB%B9%99%20%EC%8A%A4%ED%8A%B8%EB%9E%A9%20%EA%B0%80%EB%B0%A9%29%20%EB%81%88%2025mm%C3%97100m","site":"미지정"},{"id":"M030","cat":"끈·섬유","name":"찰고무줄","spec":"긴것","ch":"on","vendor":"11번가","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EC%B0%B0%EA%B3%A0%EB%AC%B4%EC%A4%84%20%EA%B8%B4%EA%B2%83","site":"11번가"},{"id":"M031","cat":"도료·필기구","name":"3색 볼펜","spec":"10자루\n30개","ch":"on","vendor":"","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=3%EC%83%89%20%EB%B3%BC%ED%8E%9C%2010%EC%9E%90%EB%A3%A8","site":"미지정"},{"id":"M032","cat":"도료·필기구","name":"네임펜","spec":"12개\n12자루\n12개입\n중간글씨용","ch":"on","vendor":"인터파크 / 올문구(네이버)","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EB%84%A4%EC%9E%84%ED%8E%9C%2012%EA%B0%9C","site":"네이버"},{"id":"M033","cat":"도료·필기구","name":"락카","spec":"","ch":"on","vendor":"네이버","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EB%9D%BD%EC%B9%B4","site":"네이버"},{"id":"M034","cat":"도료·필기구","name":"리필심","spec":"","ch":"on","vendor":"","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EB%A6%AC%ED%95%84%EC%8B%AC","site":"미지정"},{"id":"M035","cat":"도료·필기구","name":"매직블럭","spec":"","ch":"on","vendor":"","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EB%A7%A4%EC%A7%81%EB%B8%94%EB%9F%AD","site":"미지정"},{"id":"M036","cat":"도료·필기구","name":"모델링 페이스트","spec":"500ml","ch":"on","vendor":"","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EB%AA%A8%EB%8D%B8%EB%A7%81%20%ED%8E%98%EC%9D%B4%EC%8A%A4%ED%8A%B8%20500ml","site":"미지정"},{"id":"M037","cat":"도료·필기구","name":"백붓 셋트","spec":"","ch":"on","vendor":"","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EB%B0%B1%EB%B6%93%20%EC%85%8B%ED%8A%B8","site":"미지정"},{"id":"M038","cat":"도료·필기구","name":"붓펜","spec":"","ch":"on","vendor":"네이버","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EB%B6%93%ED%8E%9C","site":"네이버"},{"id":"M039","cat":"도료·필기구","name":"사포","spec":"","ch":"on","vendor":"","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EC%82%AC%ED%8F%AC","site":"미지정"},{"id":"M040","cat":"도료·필기구","name":"신나서 마카펜, 화이트","spec":"12개","ch":"on","vendor":"","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EC%8B%A0%EB%82%98%EC%84%9C%20%EB%A7%88%EC%B9%B4%ED%8E%9C%20%ED%99%94%EC%9D%B4%ED%8A%B8%2012%EA%B0%9C","site":"미지정"},{"id":"M041","cat":"도료·필기구","name":"아크릴 물감","spec":"220ml, 레드\n220ml, 블랙\n220ml, 블루\n220ml, 실버\n220ml, 옐로우\n220ml, 화이트\n220ml,, 골드\n400ml 리퀴텍스/금,은 계열 가장 쌈\n블랙\n비비드\n파란색\n화이트\n화이트,레드,그린,블랙,블루,브라운","ch":"on","vendor":"11번가 / G마켓 / 네이버","base":"ml당 20원","hq":"2월","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EC%95%84%ED%81%AC%EB%A6%B4%20%EB%AC%BC%EA%B0%90%20220ml%20%EB%A0%88%EB%93%9C","site":"네이버"},{"id":"M042","cat":"도료·필기구","name":"아크릴붓 세트","spec":"복합 6필 2,4,6,8,10,40호\n세필붓 7필 2호~12호\n전문가용) 6필","ch":"on","vendor":"","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EC%95%84%ED%81%AC%EB%A6%B4%EB%B6%93%20%EC%84%B8%ED%8A%B8%20%EB%B3%B5%ED%95%A9%206%ED%95%84%202%204%206%208%2010%2040%ED%98%B8","site":"미지정"},{"id":"M043","cat":"도료·필기구","name":"유성매직","spec":"12자루 갈색\n12자루 노란색\n12자루 녹색\n12자루 주황색\n12자루 하늘색\n12자루 황토색\n빨강, 파랑, 검정\n연주황색\n회색","ch":"on","vendor":"11번가","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EC%9C%A0%EC%84%B1%EB%A7%A4%EC%A7%81%2012%EC%9E%90%EB%A3%A8%20%EA%B0%88%EC%83%89","site":"11번가"},{"id":"M044","cat":"도료·필기구","name":"지구색연필","spec":"","ch":"on","vendor":"","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EC%A7%80%EA%B5%AC%EC%83%89%EC%97%B0%ED%95%84","site":"미지정"},{"id":"M045","cat":"도료·필기구","name":"톰보우 HB","spec":"12자루","ch":"on","vendor":"","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%ED%86%B0%EB%B3%B4%EC%9A%B0%20HB%2012%EC%9E%90%EB%A3%A8","site":"미지정"},{"id":"M046","cat":"도료·필기구","name":"페인트 나이프","spec":"","ch":"on","vendor":"","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%ED%8E%98%EC%9D%B8%ED%8A%B8%20%EB%82%98%EC%9D%B4%ED%94%84","site":"미지정"},{"id":"M047","cat":"도료·필기구","name":"포스카 마카","spec":"","ch":"on","vendor":"","base":"","hq":"3월","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%ED%8F%AC%EC%8A%A4%EC%B9%B4%20%EB%A7%88%EC%B9%B4","site":"미지정"},{"id":"M048","cat":"도료·필기구","name":"핸디코트","spec":"5kg 4EA","ch":"on","vendor":"G마켓","base":"","hq":"4월","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%ED%95%B8%EB%94%94%EC%BD%94%ED%8A%B8%205kg%204EA","site":"G마켓"},{"id":"M049","cat":"도료·필기구","name":"화이트보드","spec":"150×90","ch":"on","vendor":"쿠팡","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%ED%99%94%EC%9D%B4%ED%8A%B8%EB%B3%B4%EB%93%9C%20150%C3%9790","site":"쿠팡"},{"id":"M050","cat":"목재·자연물","name":"나무 바구니","spec":"","ch":"on","vendor":"","base":"","hq":"4월","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EB%82%98%EB%AC%B4%20%EB%B0%94%EA%B5%AC%EB%8B%88","site":"미지정"},{"id":"M051","cat":"목재·자연물","name":"나무 빈 주사위","spec":"","ch":"on","vendor":"11번가","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EB%82%98%EB%AC%B4%20%EB%B9%88%20%EC%A3%BC%EC%82%AC%EC%9C%84","site":"11번가"},{"id":"M052","cat":"목재·자연물","name":"나무 젓가락","spec":"비포장 알젓가락","ch":"on","vendor":"G마켓","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EB%82%98%EB%AC%B4%20%EC%A0%93%EA%B0%80%EB%9D%BD%20%EB%B9%84%ED%8F%AC%EC%9E%A5%20%EC%95%8C%EC%A0%93%EA%B0%80%EB%9D%BD","site":"G마켓"},{"id":"M053","cat":"목재·자연물","name":"나무목재2cm","spec":"","ch":"on","vendor":"","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EB%82%98%EB%AC%B4%EB%AA%A9%EC%9E%AC2cm","site":"미지정"},{"id":"M054","cat":"목재·자연물","name":"나무바크","spec":"","ch":"on","vendor":"","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EB%82%98%EB%AC%B4%EB%B0%94%ED%81%AC","site":"미지정"},{"id":"M055","cat":"목재·자연물","name":"나무블럭 쌓기","spec":"","ch":"on","vendor":"","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EB%82%98%EB%AC%B4%EB%B8%94%EB%9F%AD%20%EC%8C%93%EA%B8%B0","site":"미지정"},{"id":"M056","cat":"목재·자연물","name":"나무판넬","spec":"","ch":"on","vendor":"","base":"","hq":"7월","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EB%82%98%EB%AC%B4%ED%8C%90%EB%84%AC","site":"미지정"},{"id":"M057","cat":"목재·자연물","name":"넝쿨 꽃리스","spec":"10cm 조화장식, 60개","ch":"on","vendor":"","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EB%84%9D%EC%BF%A8%20%EA%BD%83%EB%A6%AC%EC%8A%A4%2010cm%20%EC%A1%B0%ED%99%94%EC%9E%A5%EC%8B%9D%2060%EA%B0%9C","site":"미지정"},{"id":"M058","cat":"목재·자연물","name":"대나무 꼬치","spec":"20cm 150EA×2\n40cm 100EA\n150개","ch":"on","vendor":"쿠팡","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EB%8C%80%EB%82%98%EB%AC%B4%20%EA%BC%AC%EC%B9%98%2020cm%20150EA%C3%972","site":"쿠팡"},{"id":"M059","cat":"목재·자연물","name":"대나무발","spec":"","ch":"on","vendor":"","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EB%8C%80%EB%82%98%EB%AC%B4%EB%B0%9C","site":"미지정"},{"id":"M060","cat":"목재·자연물","name":"대나무살","spec":"","ch":"on","vendor":"","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EB%8C%80%EB%82%98%EB%AC%B4%EC%82%B4","site":"미지정"},{"id":"M061","cat":"목재·자연물","name":"디오라마 나무 30~50p","spec":"","ch":"on","vendor":"","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EB%94%94%EC%98%A4%EB%9D%BC%EB%A7%88%20%EB%82%98%EB%AC%B4%2030~50p","site":"미지정"},{"id":"M062","cat":"목재·자연물","name":"미니 나무블럭","spec":"2.5cm 100pcs","ch":"on","vendor":"","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EB%AF%B8%EB%8B%88%20%EB%82%98%EB%AC%B4%EB%B8%94%EB%9F%AD%202.5cm%20100pcs","site":"미지정"},{"id":"M063","cat":"목재·자연물","name":"부채살","spec":"","ch":"on","vendor":"","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EB%B6%80%EC%B1%84%EC%82%B4","site":"미지정"},{"id":"M064","cat":"목재·자연물","name":"소나무 껍데기","spec":"3L","ch":"on","vendor":"","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EC%86%8C%EB%82%98%EB%AC%B4%20%EA%BB%8D%EB%8D%B0%EA%B8%B0%203L","site":"미지정"},{"id":"M065","cat":"목재·자연물","name":"수수깡","spec":"대) 60cm 140EA","ch":"on","vendor":"","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EC%88%98%EC%88%98%EA%B9%A1%20%EB%8C%80%29%2060cm%20140EA","site":"미지정"},{"id":"M066","cat":"목재·자연물","name":"우드톰슨 톱니","spec":"","ch":"on","vendor":"","base":"","hq":"7월","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EC%9A%B0%EB%93%9C%ED%86%B0%EC%8A%A8%20%ED%86%B1%EB%8B%88","site":"미지정"},{"id":"M067","cat":"목재·자연물","name":"우드톰슨 프레임","spec":"","ch":"on","vendor":"","base":"","hq":"10월","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EC%9A%B0%EB%93%9C%ED%86%B0%EC%8A%A8%20%ED%94%84%EB%A0%88%EC%9E%84","site":"미지정"},{"id":"M068","cat":"목재·자연물","name":"울타리","spec":"","ch":"on","vendor":"퍼니스쿨","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EC%9A%B8%ED%83%80%EB%A6%AC","site":"기타"},{"id":"M069","cat":"목재·자연물","name":"정육면체 나무큐브","spec":"2.5cm 18개","ch":"on","vendor":"","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EC%A0%95%EC%9C%A1%EB%A9%B4%EC%B2%B4%20%EB%82%98%EB%AC%B4%ED%81%90%EB%B8%8C%202.5cm%2018%EA%B0%9C","site":"미지정"},{"id":"M070","cat":"목재·자연물","name":"젠가 블록 48pcs","spec":"","ch":"on","vendor":"","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EC%A0%A0%EA%B0%80%20%EB%B8%94%EB%A1%9D%2048pcs","site":"미지정"},{"id":"M071","cat":"목재·자연물","name":"지관","spec":"0.81cm, 길이 10.16cm 100개\n30mm 10cm\n30mm 20cm\n30mm 30cm\n40mm 10cm\n40mm 20cm\n40mm 30cm\n40mm 5cm\n80mm 10cm\n80mm 20cm\n80mm 30cm","ch":"off","vendor":"은성지관 (오프라인)","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EC%A7%80%EA%B4%80%200.81cm%20%EA%B8%B8%EC%9D%B4%2010.16cm%20100%EA%B0%9C","site":"은성지관"},{"id":"M072","cat":"목재·자연물","name":"코르크","spec":"","ch":"on","vendor":"","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EC%BD%94%EB%A5%B4%ED%81%AC","site":"미지정"},{"id":"M073","cat":"목재·자연물","name":"편백큐브","spec":"","ch":"on","vendor":"","base":"","hq":"4월","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%ED%8E%B8%EB%B0%B1%ED%81%90%EB%B8%8C","site":"미지정"},{"id":"M074","cat":"목재·자연물","name":"하드바(아이스크림 막대)","spec":"대) 1000EA\n중,소,대\n컬러 (대) 50EA\n대, 1000개\n중 대\n혼합색 대\n혼합색 중","ch":"on","vendor":"핸즈 코리아 / 핸즈코리아 / 도매핸즈","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%ED%95%98%EB%93%9C%EB%B0%94%20%EB%8C%80%29%201000EA","site":"핸즈코리아"},{"id":"M075","cat":"보드·발포류","name":"LED 에바폼","spec":"","ch":"on","vendor":"","base":"","hq":"11월","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=LED%20%EC%97%90%EB%B0%94%ED%8F%BC","site":"미지정"},{"id":"M076","cat":"보드·발포류","name":"대원 무늬보드","spec":"5T 60×90 30장씩\n5T 60×90 5장씩","ch":"on","vendor":"11번가 / 네이버(찜)","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EB%8C%80%EC%9B%90%20%EB%AC%B4%EB%8A%AC%EB%B3%B4%EB%93%9C%205T%2060%C3%9790%2030%EC%9E%A5%EC%94%A9","site":"네이버"},{"id":"M077","cat":"보드·발포류","name":"스티로폼 원뿔","spec":"200EA","ch":"on","vendor":"네이버 / 도매핸즈","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EC%8A%A4%ED%8B%B0%EB%A1%9C%ED%8F%BC%20%EC%9B%90%EB%BF%94%20200EA","site":"네이버"},{"id":"M078","cat":"보드·발포류","name":"스티로폼공","spec":"100mm\n100mm 28EA\n150mm\n150mm 15EA\n30\n30mm\n50,70,100\n50mm\n50mm 250EA\n70mm\n계란형","ch":"on","vendor":"","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EC%8A%A4%ED%8B%B0%EB%A1%9C%ED%8F%BC%EA%B3%B5%20100mm","site":"미지정"},{"id":"M079","cat":"보드·발포류","name":"아이소핑크","spec":"900×600 mm 30T 2EA","ch":"on","vendor":"","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EC%95%84%EC%9D%B4%EC%86%8C%ED%95%91%ED%81%AC%20900%C3%97600%20mm%2030T%202EA","site":"미지정"},{"id":"M080","cat":"보드·발포류","name":"아크릴보드","spec":"","ch":"on","vendor":"테무","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EC%95%84%ED%81%AC%EB%A6%B4%EB%B3%B4%EB%93%9C","site":"테무"},{"id":"M081","cat":"보드·발포류","name":"에바폼","spec":"1.5T 300×500mm (빨,노,녹,파,흰,검\n20×20×20mm 100개 (빨,노,초,파,흰\n노랑,하늘,갈색,빨강,연두,주황\n블랙\n빨간색\n초록색\n화이트","ch":"on","vendor":"쿠팡","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EC%97%90%EB%B0%94%ED%8F%BC%201.5T%20300%C3%97500mm%20%28%EB%B9%A8%20%EB%85%B8%20%EB%85%B9%20%ED%8C%8C%20%ED%9D%B0%20%EA%B2%80","site":"쿠팡"},{"id":"M082","cat":"보드·발포류","name":"우드락(원단보드)","spec":"우드락) 3T\n우드락) 5T","ch":"off","vendor":"대성 우드락 (오프라인)","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EC%9A%B0%EB%93%9C%EB%9D%BD%20%EC%9A%B0%EB%93%9C%EB%9D%BD%29%203T","site":"대성 우드락"},{"id":"M083","cat":"보드·발포류","name":"우레탄폼 / 일회용750ml","spec":"","ch":"on","vendor":"","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EC%9A%B0%EB%A0%88%ED%83%84%ED%8F%BC%20%EC%9D%BC%ED%9A%8C%EC%9A%A9750ml","site":"미지정"},{"id":"M084","cat":"보드·발포류","name":"컬러우드락","spec":"","ch":"on","vendor":"네이버","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EC%BB%AC%EB%9F%AC%EC%9A%B0%EB%93%9C%EB%9D%BD","site":"네이버"},{"id":"M085","cat":"보드·발포류","name":"포맥스","spec":"","ch":"on","vendor":"인터파크","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%ED%8F%AC%EB%A7%A5%EC%8A%A4","site":"기타"},{"id":"M086","cat":"보드·발포류","name":"폼보드(팝보드)","spec":"팝보드) 3T\n팝보드) 5T\n폼보드/팝보드) 3T (50장\n폼보드/팝보드) 5T (30장\nFoam Board/우드락) 3T\nFoam Board/우드락) 5T","ch":"off","vendor":"대성 우드락 (오프라인)","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%ED%8F%BC%EB%B3%B4%EB%93%9C%20%ED%8C%9D%EB%B3%B4%EB%93%9C%29%203T","site":"대성 우드락"},{"id":"M087","cat":"부품·공구","name":"3엽 프로펠러","spec":"","ch":"on","vendor":"G마켓","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=3%EC%97%BD%20%ED%94%84%EB%A1%9C%ED%8E%A0%EB%9F%AC","site":"G마켓"},{"id":"M088","cat":"부품·공구","name":"4엽 프로펠러","spec":"","ch":"on","vendor":"11번가","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=4%EC%97%BD%20%ED%94%84%EB%A1%9C%ED%8E%A0%EB%9F%AC","site":"11번가"},{"id":"M089","cat":"부품·공구","name":"pop 집게","spec":"대\n25개","ch":"on","vendor":"","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=pop%20%EC%A7%91%EA%B2%8C%20%EB%8C%80","site":"미지정"},{"id":"M090","cat":"부품·공구","name":"각도 조절 커터기","spec":"","ch":"on","vendor":"G마켓","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EA%B0%81%EB%8F%84%20%EC%A1%B0%EC%A0%88%20%EC%BB%A4%ED%84%B0%EA%B8%B0","site":"G마켓"},{"id":"M091","cat":"부품·공구","name":"경첩","spec":"대, 1000개\n소, 대\n아크릴 (대) 100EA\n아크릴 (중) 100EA","ch":"on","vendor":"핸즈코리아","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EA%B2%BD%EC%B2%A9%20%EB%8C%80%201000%EA%B0%9C","site":"핸즈코리아"},{"id":"M092","cat":"부품·공구","name":"공예용 철사(분재철사)","spec":"1.0mm 240m\n대량","ch":"on","vendor":"G마켓 / 네이버","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EA%B3%B5%EC%98%88%EC%9A%A9%20%EC%B2%A0%EC%82%AC%201.0mm%20240m","site":"네이버"},{"id":"M093","cat":"부품·공구","name":"관절 스피너","spec":"","ch":"on","vendor":"","base":"","hq":"10월","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EA%B4%80%EC%A0%88%20%EC%8A%A4%ED%94%BC%EB%84%88","site":"미지정"},{"id":"M094","cat":"부품·공구","name":"나사못","spec":"","ch":"on","vendor":"네이버","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EB%82%98%EC%82%AC%EB%AA%BB","site":"네이버"},{"id":"M095","cat":"부품·공구","name":"니퍼","spec":"","ch":"on","vendor":"","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EB%8B%88%ED%8D%BC","site":"미지정"},{"id":"M096","cat":"부품·공구","name":"대형 프로펠러","spec":"","ch":"on","vendor":"G마켓","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EB%8C%80%ED%98%95%20%ED%94%84%EB%A1%9C%ED%8E%A0%EB%9F%AC","site":"G마켓"},{"id":"M097","cat":"부품·공구","name":"롱노우즈","spec":"","ch":"on","vendor":"","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EB%A1%B1%EB%85%B8%EC%9A%B0%EC%A6%88","site":"미지정"},{"id":"M098","cat":"부품·공구","name":"마이크로 튜브","spec":"","ch":"on","vendor":"","base":"","hq":"2월","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EB%A7%88%EC%9D%B4%ED%81%AC%EB%A1%9C%20%ED%8A%9C%EB%B8%8C","site":"미지정"},{"id":"M099","cat":"부품·공구","name":"문손잡이","spec":"","ch":"on","vendor":"네이버","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EB%AC%B8%EC%86%90%EC%9E%A1%EC%9D%B4","site":"네이버"},{"id":"M100","cat":"부품·공구","name":"바퀴(규격 미상)","spec":"대 사이즈\n소 사이즈\n중 사이즈","ch":"on","vendor":"","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EB%B0%94%ED%80%B4%20%EB%8C%80%20%EC%82%AC%EC%9D%B4%EC%A6%88","site":"미지정"},{"id":"M101","cat":"부품·공구","name":"바퀴축","spec":"","ch":"on","vendor":"","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EB%B0%94%ED%80%B4%EC%B6%95","site":"미지정"},{"id":"M102","cat":"부품·공구","name":"볼바퀴","spec":"","ch":"on","vendor":"","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EB%B3%BC%EB%B0%94%ED%80%B4","site":"미지정"},{"id":"M103","cat":"부품·공구","name":"소형 도르레","spec":"","ch":"on","vendor":"","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EC%86%8C%ED%98%95%20%EB%8F%84%EB%A5%B4%EB%A0%88","site":"미지정"},{"id":"M104","cat":"부품·공구","name":"수예룰렛","spec":"","ch":"on","vendor":"테무","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EC%88%98%EC%98%88%EB%A3%B0%EB%A0%9B","site":"테무"},{"id":"M105","cat":"부품·공구","name":"용수철(스프링)","spec":"","ch":"on","vendor":"G마켓 / 11번가 / 네이버","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EC%9A%A9%EC%88%98%EC%B2%A0","site":"네이버"},{"id":"M106","cat":"부품·공구","name":"원형핀","spec":"2.1cm,500개","ch":"on","vendor":"핸즈코리아","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EC%9B%90%ED%98%95%ED%95%80%202.1cm%20500%EA%B0%9C","site":"핸즈코리아"},{"id":"M107","cat":"부품·공구","name":"자동차 바퀴(PVC)","spec":"3cm, 4cm, 5cm\n대\n중","ch":"on","vendor":"핸즈코리아 / G마켓","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EC%9E%90%EB%8F%99%EC%B0%A8%20%EB%B0%94%ED%80%B4%203cm%204cm%205cm","site":"G마켓"},{"id":"M108","cat":"부품·공구","name":"자동차 바퀴(고무)","spec":"3cm,4cm,5cm\n소\n중","ch":"on","vendor":"엉클지","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EC%9E%90%EB%8F%99%EC%B0%A8%20%EB%B0%94%ED%80%B4%203cm%204cm%205cm","site":"기타"},{"id":"M109","cat":"부품·공구","name":"자석(원형/네오디움)","spec":"2.5cm 1000개\n3cm 500개","ch":"on","vendor":"도매핸즈","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EC%9E%90%EC%84%9D%202.5cm%201000%EA%B0%9C","site":"핸즈코리아"},{"id":"M110","cat":"부품·공구","name":"접이식 옷걸이","spec":"","ch":"on","vendor":"네이버","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EC%A0%91%EC%9D%B4%EC%8B%9D%20%EC%98%B7%EA%B1%B8%EC%9D%B4","site":"네이버"},{"id":"M111","cat":"부품·공구","name":"캐스터 바퀴","spec":"","ch":"on","vendor":"G마켓 / 11번가","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EC%BA%90%EC%8A%A4%ED%84%B0%20%EB%B0%94%ED%80%B4","site":"11번가"},{"id":"M112","cat":"부품·공구","name":"커터칼심","spec":"","ch":"on","vendor":"","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EC%BB%A4%ED%84%B0%EC%B9%BC%EC%8B%AC","site":"미지정"},{"id":"M113","cat":"부품·공구","name":"쿠킹 머핀","spec":"","ch":"on","vendor":"","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EC%BF%A0%ED%82%B9%20%EB%A8%B8%ED%95%80","site":"미지정"},{"id":"M114","cat":"부품·공구","name":"플라스틱 관절","spec":"","ch":"on","vendor":"","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%ED%94%8C%EB%9D%BC%EC%8A%A4%ED%8B%B1%20%EA%B4%80%EC%A0%88","site":"미지정"},{"id":"M115","cat":"부품·공구","name":"학생용 가위","spec":"","ch":"on","vendor":"","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%ED%95%99%EC%83%9D%EC%9A%A9%20%EA%B0%80%EC%9C%84","site":"미지정"},{"id":"M116","cat":"부품·공구","name":"회전 개고리","spec":"","ch":"on","vendor":"","base":"","hq":"1월","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%ED%9A%8C%EC%A0%84%20%EA%B0%9C%EA%B3%A0%EB%A6%AC","site":"미지정"},{"id":"M117","cat":"부품·공구","name":"후크","spec":"","ch":"on","vendor":"","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%ED%9B%84%ED%81%AC","site":"미지정"},{"id":"M118","cat":"소모·위생","name":"거즈","spec":"5×5 cm","ch":"on","vendor":"","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EA%B1%B0%EC%A6%88%205%C3%975%20cm","site":"미지정"},{"id":"M119","cat":"소모·위생","name":"물티슈","spec":"100매입 10개","ch":"on","vendor":"","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EB%AC%BC%ED%8B%B0%EC%8A%88%20100%EB%A7%A4%EC%9E%85%2010%EA%B0%9C","site":"미지정"},{"id":"M120","cat":"소모·위생","name":"배수구 거름망","spec":"","ch":"on","vendor":"","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EB%B0%B0%EC%88%98%EA%B5%AC%20%EA%B1%B0%EB%A6%84%EB%A7%9D","site":"미지정"},{"id":"M121","cat":"소모·위생","name":"보안경 고글","spec":"","ch":"on","vendor":"G마켓","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EB%B3%B4%EC%95%88%EA%B2%BD%20%EA%B3%A0%EA%B8%80","site":"G마켓"},{"id":"M122","cat":"소모·위생","name":"보온재","spec":"","ch":"on","vendor":"G마켓 / 11번가","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EB%B3%B4%EC%98%A8%EC%9E%AC","site":"11번가"},{"id":"M123","cat":"소모·위생","name":"세모금컵","spec":"100ml 2000개입","ch":"on","vendor":"네이버","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EC%84%B8%EB%AA%A8%EA%B8%88%EC%BB%B5%20100ml%202000%EA%B0%9C%EC%9E%85","site":"네이버"},{"id":"M124","cat":"소모·위생","name":"쓰레기통","spec":"15L (화이트\n15L (블랙","ch":"on","vendor":"쿠팡","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EC%93%B0%EB%A0%88%EA%B8%B0%ED%86%B5%2015L%20%28%ED%99%94%EC%9D%B4%ED%8A%B8","site":"쿠팡"},{"id":"M125","cat":"소모·위생","name":"종이접시","spec":"","ch":"on","vendor":"","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EC%A2%85%EC%9D%B4%EC%A0%91%EC%8B%9C","site":"미지정"},{"id":"M126","cat":"소모·위생","name":"종이컵","spec":"생수컵","ch":"on","vendor":"네이버","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EC%A2%85%EC%9D%B4%EC%BB%B5%20%EC%83%9D%EC%88%98%EC%BB%B5","site":"네이버"},{"id":"M127","cat":"소모·위생","name":"주사기","spec":"","ch":"on","vendor":"","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EC%A3%BC%EC%82%AC%EA%B8%B0","site":"미지정"},{"id":"M128","cat":"소모·위생","name":"초파리 제거제","spec":"","ch":"on","vendor":"","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EC%B4%88%ED%8C%8C%EB%A6%AC%20%EC%A0%9C%EA%B1%B0%EC%A0%9C","site":"미지정"},{"id":"M129","cat":"소모·위생","name":"큰 빨대","spec":"버블티 빨대\n투명 빨대","ch":"on","vendor":"11번가","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%ED%81%B0%20%EB%B9%A8%EB%8C%80%20%EB%B2%84%EB%B8%94%ED%8B%B0%20%EB%B9%A8%EB%8C%80","site":"11번가"},{"id":"M130","cat":"소모·위생","name":"털 문풍지","spec":"","ch":"on","vendor":"","base":"","hq":"9월","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%ED%84%B8%20%EB%AC%B8%ED%92%8D%EC%A7%80","site":"미지정"},{"id":"M131","cat":"소모·위생","name":"투명빨대","spec":"","ch":"on","vendor":"11번가","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%ED%88%AC%EB%AA%85%EB%B9%A8%EB%8C%80","site":"11번가"},{"id":"M132","cat":"소모·위생","name":"투명컵","spec":"","ch":"on","vendor":"네이버","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%ED%88%AC%EB%AA%85%EC%BB%B5","site":"네이버"},{"id":"M133","cat":"소모·위생","name":"투명컵 돔리드","spec":"뚜껑)-1bo×(1000EA","ch":"on","vendor":"G마켓","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%ED%88%AC%EB%AA%85%EC%BB%B5%20%EB%8F%94%EB%A6%AC%EB%93%9C%20%EB%9A%9C%EA%BB%91%29-1bo%C3%97%281000EA","site":"G마켓"},{"id":"M134","cat":"소모·위생","name":"핸드타올","spec":"2000개입, 1개\n250개입 20세트\n5000개","ch":"on","vendor":"쿠팡","base":"매당 4.6~5.2원","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%ED%95%B8%EB%93%9C%ED%83%80%EC%98%AC%202000%EA%B0%9C%EC%9E%85%201%EA%B0%9C","site":"쿠팡"},{"id":"M135","cat":"소모·위생","name":"휴지(화장지)","spec":"27m 30롤, 2개\n2개 세트","ch":"on","vendor":"","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%ED%9C%B4%EC%A7%80%2027m%2030%EB%A1%A4%202%EA%B0%9C","site":"미지정"},{"id":"M136","cat":"장식·부자재","name":"곤충 눈알","spec":"","ch":"on","vendor":"","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EA%B3%A4%EC%B6%A9%20%EB%88%88%EC%95%8C","site":"미지정"},{"id":"M137","cat":"장식·부자재","name":"구슬","spec":"","ch":"on","vendor":"G마켓 / 네이버","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EA%B5%AC%EC%8A%AC","site":"네이버"},{"id":"M138","cat":"장식·부자재","name":"그리기 통통볼","spec":"","ch":"on","vendor":"","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EA%B7%B8%EB%A6%AC%EA%B8%B0%20%ED%86%B5%ED%86%B5%EB%B3%BC","site":"미지정"},{"id":"M139","cat":"장식·부자재","name":"덜덜이","spec":"300개","ch":"on","vendor":"","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EB%8D%9C%EB%8D%9C%EC%9D%B4%20300%EA%B0%9C","site":"미지정"},{"id":"M140","cat":"장식·부자재","name":"들곷 야생화 꽃다발","spec":"","ch":"on","vendor":"","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EB%93%A4%EA%B3%B7%20%EC%95%BC%EC%83%9D%ED%99%94%20%EA%BD%83%EB%8B%A4%EB%B0%9C","site":"미지정"},{"id":"M141","cat":"장식·부자재","name":"미니어처(사람)","spec":"사람모형)1","ch":"on","vendor":"11번가","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EB%AF%B8%EB%8B%88%EC%96%B4%EC%B2%98%20%EC%82%AC%EB%9E%8C%EB%AA%A8%ED%98%95%291","site":"11번가"},{"id":"M142","cat":"장식·부자재","name":"미니체인","spec":"","ch":"on","vendor":"","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EB%AF%B8%EB%8B%88%EC%B2%B4%EC%9D%B8","site":"미지정"},{"id":"M143","cat":"장식·부자재","name":"병뚜껑","spec":"금, 은색), 1000개\n맥주뚜껑","ch":"on","vendor":"핸즈코리아","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EB%B3%91%EB%9A%9C%EA%BB%91%20%EA%B8%88%20%EC%9D%80%EC%83%89%29%201000%EA%B0%9C","site":"핸즈코리아"},{"id":"M144","cat":"장식·부자재","name":"뽑기 캡슐","spec":"","ch":"on","vendor":"","base":"","hq":"1월","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EB%BD%91%EA%B8%B0%20%EC%BA%A1%EC%8A%90","site":"미지정"},{"id":"M145","cat":"장식·부자재","name":"산호사","spec":"500g","ch":"on","vendor":"","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EC%82%B0%ED%98%B8%EC%82%AC%20500g","site":"미지정"},{"id":"M146","cat":"장식·부자재","name":"스칸디아모스","spec":"500g, (그린, 블루","ch":"on","vendor":"","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EC%8A%A4%EC%B9%B8%EB%94%94%EC%95%84%EB%AA%A8%EC%8A%A4%20500g%20%28%EA%B7%B8%EB%A6%B0%20%EB%B8%94%EB%A3%A8","site":"미지정"},{"id":"M147","cat":"장식·부자재","name":"씨글라스","spec":"100g / 분홍, 빨강, 주황, 노랑, 연녹, 파랑, 군청","ch":"on","vendor":"네이버","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EC%94%A8%EA%B8%80%EB%9D%BC%EC%8A%A4%20100g%20%EB%B6%84%ED%99%8D%20%EB%B9%A8%EA%B0%95%20%EC%A3%BC%ED%99%A9%20%EB%85%B8%EB%9E%91%20%EC%97%B0%EB%85%B9%20%ED%8C%8C%EB%9E%91%20%EA%B5%B0%EC%B2%AD","site":"네이버"},{"id":"M148","cat":"장식·부자재","name":"아크릴 거울 원형","spec":"5.5cm","ch":"on","vendor":"","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EC%95%84%ED%81%AC%EB%A6%B4%20%EA%B1%B0%EC%9A%B8%20%EC%9B%90%ED%98%95%205.5cm","site":"미지정"},{"id":"M149","cat":"장식·부자재","name":"원석","spec":"","ch":"on","vendor":"","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EC%9B%90%EC%84%9D","site":"미지정"},{"id":"M150","cat":"장식·부자재","name":"유리타일","spec":"1.5cm 54개","ch":"on","vendor":"퍼니스쿨","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EC%9C%A0%EB%A6%AC%ED%83%80%EC%9D%BC%201.5cm%2054%EA%B0%9C","site":"기타"},{"id":"M151","cat":"장식·부자재","name":"인조 잔디","spec":"20m, 2m×2m","ch":"on","vendor":"","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EC%9D%B8%EC%A1%B0%20%EC%9E%94%EB%94%94%2020m%202m%C3%972m","site":"미지정"},{"id":"M152","cat":"장식·부자재","name":"자갈","spec":"","ch":"on","vendor":"11번가","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EC%9E%90%EA%B0%88","site":"11번가"},{"id":"M153","cat":"장식·부자재","name":"조개껍질대","spec":"","ch":"on","vendor":"","base":"","hq":"4월","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EC%A1%B0%EA%B0%9C%EA%BB%8D%EC%A7%88%EB%8C%80","site":"미지정"},{"id":"M154","cat":"장식·부자재","name":"체인","spec":"쇠사슬","ch":"on","vendor":"네이버(철물)","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EC%B2%B4%EC%9D%B8%20%EC%87%A0%EC%82%AC%EC%8A%AC","site":"네이버"},{"id":"M155","cat":"장식·부자재","name":"코사지핀","spec":"","ch":"on","vendor":"쿠팡","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EC%BD%94%EC%82%AC%EC%A7%80%ED%95%80","site":"쿠팡"},{"id":"M156","cat":"장식·부자재","name":"큐빅 비즈 스티커","spec":"","ch":"on","vendor":"","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%ED%81%90%EB%B9%85%20%EB%B9%84%EC%A6%88%20%EC%8A%A4%ED%8B%B0%EC%BB%A4","site":"미지정"},{"id":"M157","cat":"장식·부자재","name":"탁구공 30EA","spec":"","ch":"on","vendor":"","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%ED%83%81%EA%B5%AC%EA%B3%B5%2030EA","site":"미지정"},{"id":"M158","cat":"장식·부자재","name":"팝튜브","spec":"","ch":"on","vendor":"","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%ED%8C%9D%ED%8A%9C%EB%B8%8C","site":"미지정"},{"id":"M159","cat":"장식·부자재","name":"푸쉬팝","spec":"","ch":"on","vendor":"","base":"","hq":"3월","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%ED%91%B8%EC%89%AC%ED%8C%9D","site":"미지정"},{"id":"M160","cat":"장식·부자재","name":"플라스틱망 셔틀콕","spec":"12개 (흰색","ch":"on","vendor":"","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%ED%94%8C%EB%9D%BC%EC%8A%A4%ED%8B%B1%EB%A7%9D%20%EC%85%94%ED%8B%80%EC%BD%95%2012%EA%B0%9C%20%28%ED%9D%B0%EC%83%89","site":"미지정"},{"id":"M161","cat":"장식·부자재","name":"혼합 깃털","spec":"","ch":"on","vendor":"테무","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%ED%98%BC%ED%95%A9%20%EA%B9%83%ED%84%B8","site":"테무"},{"id":"M162","cat":"장식·부자재","name":"혼합 폼폼이세트","spec":"빨,주,노,초,파,남,보","ch":"on","vendor":"","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%ED%98%BC%ED%95%A9%20%ED%8F%BC%ED%8F%BC%EC%9D%B4%EC%84%B8%ED%8A%B8%20%EB%B9%A8%20%EC%A3%BC%20%EB%85%B8%20%EC%B4%88%20%ED%8C%8C%20%EB%82%A8%20%EB%B3%B4","site":"미지정"},{"id":"M163","cat":"장식·부자재","name":"히어로단추","spec":"","ch":"on","vendor":"","base":"","hq":"11월","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%ED%9E%88%EC%96%B4%EB%A1%9C%EB%8B%A8%EC%B6%94","site":"미지정"},{"id":"M164","cat":"전기·전자","name":"LED 그리기 팔찌","spec":"","ch":"on","vendor":"","base":"","hq":"3월","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=LED%20%EA%B7%B8%EB%A6%AC%EA%B8%B0%20%ED%8C%94%EC%B0%8C","site":"미지정"},{"id":"M165","cat":"전기·전자","name":"LED 미니전구","spec":"100개\n노랑색, 10구, 20개\n흰색, 20구, 20개","ch":"on","vendor":"쿠팡","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=LED%20%EB%AF%B8%EB%8B%88%EC%A0%84%EA%B5%AC%20100%EA%B0%9C","site":"쿠팡"},{"id":"M166","cat":"전기·전자","name":"LED 줄전구(와이어)","spec":"20개\n25개","ch":"on","vendor":"네이버 / 쿠팡","base":"","hq":"8월","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=LED%20%EC%A4%84%EC%A0%84%EA%B5%AC%2020%EA%B0%9C","site":"네이버"},{"id":"M167","cat":"전기·전자","name":"LED 핑거라이트","spec":"흰,빨,파,초","ch":"on","vendor":"네이버 / 옥션","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=LED%20%ED%95%91%EA%B1%B0%EB%9D%BC%EC%9D%B4%ED%8A%B8%20%ED%9D%B0%20%EB%B9%A8%20%ED%8C%8C%20%EC%B4%88","site":"네이버"},{"id":"M168","cat":"전기·전자","name":"PDLC 필름","spec":"","ch":"on","vendor":"LMS","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=PDLC%20%ED%95%84%EB%A6%84","site":"기타"},{"id":"M169","cat":"전기·전자","name":"건전지 AA","spec":"","ch":"on","vendor":"","base":"개당 200~250원","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EA%B1%B4%EC%A0%84%EC%A7%80%20AA","site":"미지정"},{"id":"M170","cat":"전기·전자","name":"건전지 AAA","spec":"","ch":"on","vendor":"","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EA%B1%B4%EC%A0%84%EC%A7%80%20AAA","site":"미지정"},{"id":"M171","cat":"전기·전자","name":"건전지 케이스/홀더","spec":"2구 노커버\n2구 커버\nAA2구 스위치","ch":"on","vendor":"쿠팡 / 11번가 / G마켓 / 옥션","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EA%B1%B4%EC%A0%84%EC%A7%80%20%EC%BC%80%EC%9D%B4%EC%8A%A4%20%ED%99%80%EB%8D%94%202%EA%B5%AC%20%EB%85%B8%EC%BB%A4%EB%B2%84","site":"쿠팡"},{"id":"M172","cat":"전기·전자","name":"건전지(규격 혼합)","spec":"AA 60알\nAAA 60알","ch":"on","vendor":"11번가","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EA%B1%B4%EC%A0%84%EC%A7%80%20AA%2060%EC%95%8C","site":"11번가"},{"id":"M173","cat":"전기·전자","name":"계량저울","spec":"","ch":"on","vendor":"","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EA%B3%84%EB%9F%89%EC%A0%80%EC%9A%B8","site":"미지정"},{"id":"M174","cat":"전기·전자","name":"고품질 사운드 금속 스피커 크리스마스 인사말 카드 뮤지컬 칩 모듈 선물","spec":"","ch":"on","vendor":"알리바바","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EA%B3%A0%ED%92%88%EC%A7%88%20%EC%82%AC%EC%9A%B4%EB%93%9C%20%EA%B8%88%EC%86%8D%20%EC%8A%A4%ED%94%BC%EC%BB%A4%20%ED%81%AC%EB%A6%AC%EC%8A%A4%EB%A7%88%EC%8A%A4%20%EC%9D%B8%EC%82%AC%EB%A7%90%20%EC%B9%B4%EB%93%9C%20%EB%AE%A4%EC%A7%80%EC%BB%AC%20%EC%B9%A9%20%EB%AA%A8%EB%93%88%20%EC%84%A0%EB%AC%BC","site":"알리익스프레스"},{"id":"M175","cat":"전기·전자","name":"광섬유","spec":"36개, 1박스\n소","ch":"on","vendor":"핸즈코리아 / 쿠팡","base":"","hq":"6월","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EA%B4%91%EC%84%AC%EC%9C%A0%2036%EA%B0%9C%201%EB%B0%95%EC%8A%A4","site":"쿠팡"},{"id":"M176","cat":"전기·전자","name":"납 흡입기","spec":"","ch":"on","vendor":"","base":"","hq":"10월","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EB%82%A9%20%ED%9D%A1%EC%9E%85%EA%B8%B0","site":"미지정"},{"id":"M177","cat":"전기·전자","name":"망원경 렌즈","spec":"","ch":"on","vendor":"","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EB%A7%9D%EC%9B%90%EA%B2%BD%20%EB%A0%8C%EC%A6%88","site":"미지정"},{"id":"M178","cat":"전기·전자","name":"모터","spec":"","ch":"on","vendor":"네이버","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EB%AA%A8%ED%84%B0","site":"네이버"},{"id":"M179","cat":"전기·전자","name":"무드등 LED","spec":"","ch":"on","vendor":"","base":"","hq":"6월","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EB%AC%B4%EB%93%9C%EB%93%B1%20LED","site":"미지정"},{"id":"M180","cat":"전기·전자","name":"미니 삼각 수평계","spec":"","ch":"on","vendor":"","base":"","hq":"7월","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EB%AF%B8%EB%8B%88%20%EC%82%BC%EA%B0%81%20%EC%88%98%ED%8F%89%EA%B3%84","site":"미지정"},{"id":"M181","cat":"전기·전자","name":"베어링","spec":"","ch":"on","vendor":"네이버","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EB%B2%A0%EC%96%B4%EB%A7%81","site":"네이버"},{"id":"M182","cat":"전기·전자","name":"수족관 미니펌프","spec":"","ch":"on","vendor":"","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EC%88%98%EC%A1%B1%EA%B4%80%20%EB%AF%B8%EB%8B%88%ED%8E%8C%ED%94%84","site":"미지정"},{"id":"M183","cat":"전기·전자","name":"스위치 클릭커 세트","spec":"","ch":"on","vendor":"","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EC%8A%A4%EC%9C%84%EC%B9%98%20%ED%81%B4%EB%A6%AD%EC%BB%A4%20%EC%84%B8%ED%8A%B8","site":"미지정"},{"id":"M184","cat":"전기·전자","name":"스위치용 푸시 버튼","spec":"6×6×5 200개","ch":"on","vendor":"테무","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EC%8A%A4%EC%9C%84%EC%B9%98%EC%9A%A9%20%ED%91%B8%EC%8B%9C%20%EB%B2%84%ED%8A%BC%206%C3%976%C3%975%20200%EA%B0%9C","site":"테무"},{"id":"M185","cat":"전기·전자","name":"스틱토글 스위치","spec":"","ch":"on","vendor":"","base":"","hq":"11월","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EC%8A%A4%ED%8B%B1%ED%86%A0%EA%B8%80%20%EC%8A%A4%EC%9C%84%EC%B9%98","site":"미지정"},{"id":"M186","cat":"전기·전자","name":"시계 무브먼트","spec":"1,8cm(긴나사) 100세트","ch":"on","vendor":"네이버","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EC%8B%9C%EA%B3%84%20%EB%AC%B4%EB%B8%8C%EB%A8%BC%ED%8A%B8%201%208cm%20100%EC%84%B8%ED%8A%B8","site":"네이버"},{"id":"M187","cat":"전기·전자","name":"시계바늘","spec":"200개","ch":"on","vendor":"","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EC%8B%9C%EA%B3%84%EB%B0%94%EB%8A%98%20200%EA%B0%9C","site":"미지정"},{"id":"M188","cat":"전기·전자","name":"오로라 필름 블루","spec":"100×50cm","ch":"on","vendor":"","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EC%98%A4%EB%A1%9C%EB%9D%BC%20%ED%95%84%EB%A6%84%20%EB%B8%94%EB%A3%A8%20100%C3%9750cm","site":"미지정"},{"id":"M189","cat":"전기·전자","name":"오일 펌프 깔대기","spec":"","ch":"on","vendor":"","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EC%98%A4%EC%9D%BC%20%ED%8E%8C%ED%94%84%20%EA%B9%94%EB%8C%80%EA%B8%B0","site":"미지정"},{"id":"M190","cat":"전기·전자","name":"원형 램프","spec":"","ch":"on","vendor":"11번가","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EC%9B%90%ED%98%95%20%EB%9E%A8%ED%94%84","site":"11번가"},{"id":"M191","cat":"전기·전자","name":"음성 녹음 키트","spec":"","ch":"on","vendor":"","base":"","hq":"12월","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EC%9D%8C%EC%84%B1%20%EB%85%B9%EC%9D%8C%20%ED%82%A4%ED%8A%B8","site":"미지정"},{"id":"M192","cat":"전기·전자","name":"전선 보호 튜브커버","spec":"16mm, 3개입","ch":"on","vendor":"","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EC%A0%84%EC%84%A0%20%EB%B3%B4%ED%98%B8%20%ED%8A%9C%EB%B8%8C%EC%BB%A4%EB%B2%84%2016mm%203%EA%B0%9C%EC%9E%85","site":"미지정"},{"id":"M193","cat":"전기·전자","name":"절연전선","spec":"","ch":"on","vendor":"네이버","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EC%A0%88%EC%97%B0%EC%A0%84%EC%84%A0","site":"네이버"},{"id":"M194","cat":"전기·전자","name":"점퍼 케이블선","spec":"","ch":"on","vendor":"","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EC%A0%90%ED%8D%BC%20%EC%BC%80%EC%9D%B4%EB%B8%94%EC%84%A0","site":"미지정"},{"id":"M195","cat":"전기·전자","name":"케이블타이","spec":"","ch":"on","vendor":"","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EC%BC%80%EC%9D%B4%EB%B8%94%ED%83%80%EC%9D%B4","site":"미지정"},{"id":"M196","cat":"전기·전자","name":"탈피전선","spec":"","ch":"on","vendor":"G마켓","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%ED%83%88%ED%94%BC%EC%A0%84%EC%84%A0","site":"G마켓"},{"id":"M197","cat":"전기·전자","name":"트리 LED 조명","spec":"소형","ch":"on","vendor":"네이버 / 퍼니스쿨","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%ED%8A%B8%EB%A6%AC%20LED%20%EC%A1%B0%EB%AA%85%20%EC%86%8C%ED%98%95","site":"네이버"},{"id":"M198","cat":"전기·전자","name":"티라이트","spec":"","ch":"on","vendor":"옥션","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%ED%8B%B0%EB%9D%BC%EC%9D%B4%ED%8A%B8","site":"옥션"},{"id":"M199","cat":"전기·전자","name":"편광 필름","spec":"","ch":"on","vendor":"","base":"","hq":"12월","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%ED%8E%B8%EA%B4%91%20%ED%95%84%EB%A6%84","site":"미지정"},{"id":"M200","cat":"전기·전자","name":"푸쉬(터치)라이트","spec":"푸쉬 라이트\n1개","ch":"on","vendor":"11번가 / G마켓 / 옥션","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%ED%91%B8%EC%89%AC%20%EB%9D%BC%EC%9D%B4%ED%8A%B8%20%ED%91%B8%EC%89%AC%20%EB%9D%BC%EC%9D%B4%ED%8A%B8","site":"11번가"},{"id":"M201","cat":"전기·전자","name":"프로펠러 세트(모터 포함)","spec":"","ch":"on","vendor":"G마켓","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%ED%94%84%EB%A1%9C%ED%8E%A0%EB%9F%AC%20%EC%84%B8%ED%8A%B8","site":"G마켓"},{"id":"M202","cat":"전기·전자","name":"헤어드라이기","spec":"","ch":"on","vendor":"","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%ED%97%A4%EC%96%B4%EB%93%9C%EB%9D%BC%EC%9D%B4%EA%B8%B0","site":"미지정"},{"id":"M203","cat":"접착·테이프","name":"77스프레이","spec":"","ch":"on","vendor":"11번가 / 쿠팡","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=77%EC%8A%A4%ED%94%84%EB%A0%88%EC%9D%B4","site":"쿠팡"},{"id":"M204","cat":"접착·테이프","name":"OPP 테이프","spec":"24mm×25m 90EA","ch":"on","vendor":"네이버","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=OPP%20%ED%85%8C%EC%9D%B4%ED%94%84%2024mm%C3%9725m%2090EA","site":"네이버"},{"id":"M205","cat":"접착·테이프","name":"구리테이프","spec":"","ch":"on","vendor":"네이버","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EA%B5%AC%EB%A6%AC%ED%85%8C%EC%9D%B4%ED%94%84","site":"네이버"},{"id":"M206","cat":"접착·테이프","name":"글루건심(핫멜트)","spec":"700g×10EA\n7mm\n500g\n700g","ch":"on","vendor":"네이버 / 쿠팡 / G마켓","base":"봉당 4,476원","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EA%B8%80%EB%A3%A8%EA%B1%B4%EC%8B%AC%20700g%C3%9710EA","site":"네이버"},{"id":"M207","cat":"접착·테이프","name":"도로테이프","spec":"","ch":"on","vendor":"네이버","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EB%8F%84%EB%A1%9C%ED%85%8C%EC%9D%B4%ED%94%84","site":"네이버"},{"id":"M208","cat":"접착·테이프","name":"마스킹 테이프","spec":"24mm×10m (오,보,청,녹,황,흑,적,흰","ch":"on","vendor":"네이버","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EB%A7%88%EC%8A%A4%ED%82%B9%20%ED%85%8C%EC%9D%B4%ED%94%84%2024mm%C3%9710m%20%28%EC%98%A4%20%EB%B3%B4%20%EC%B2%AD%20%EB%85%B9%20%ED%99%A9%20%ED%9D%91%20%EC%A0%81%20%ED%9D%B0","site":"네이버"},{"id":"M209","cat":"접착·테이프","name":"목공용 본드","spec":"205 오공 접착제","ch":"on","vendor":"네이버","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EB%AA%A9%EA%B3%B5%EC%9A%A9%20%EB%B3%B8%EB%93%9C%20205%20%EC%98%A4%EA%B3%B5%20%EC%A0%91%EC%B0%A9%EC%A0%9C","site":"네이버"},{"id":"M210","cat":"접착·테이프","name":"벨크로","spec":"","ch":"on","vendor":"핸즈코리아","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EB%B2%A8%ED%81%AC%EB%A1%9C","site":"핸즈코리아"},{"id":"M211","cat":"접착·테이프","name":"순간접착제","spec":"","ch":"on","vendor":"","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EC%88%9C%EA%B0%84%EC%A0%91%EC%B0%A9%EC%A0%9C","site":"미지정"},{"id":"M212","cat":"접착·테이프","name":"스냅단추 200pcs","spec":"","ch":"on","vendor":"","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EC%8A%A4%EB%83%85%EB%8B%A8%EC%B6%94%20200pcs","site":"미지정"},{"id":"M213","cat":"접착·테이프","name":"아뜰라임 클리어겔 자국없는 초강력 실리콘 양면 테이프","spec":"","ch":"on","vendor":"","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EC%95%84%EB%9C%B0%EB%9D%BC%EC%9E%84%20%ED%81%B4%EB%A6%AC%EC%96%B4%EA%B2%94%20%EC%9E%90%EA%B5%AD%EC%97%86%EB%8A%94%20%EC%B4%88%EA%B0%95%EB%A0%A5%20%EC%8B%A4%EB%A6%AC%EC%BD%98%20%EC%96%91%EB%A9%B4%20%ED%85%8C%EC%9D%B4%ED%94%84","site":"미지정"},{"id":"M214","cat":"접착·테이프","name":"알루미늄(은박) 테이프","spec":"22mm×5m\n23m 10EA","ch":"on","vendor":"네이버","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EC%95%8C%EB%A3%A8%EB%AF%B8%EB%8A%84%20%ED%85%8C%EC%9D%B4%ED%94%84%2022mm%C3%975m","site":"네이버"},{"id":"M215","cat":"접착·테이프","name":"에폭시","spec":"","ch":"on","vendor":"쿠팡","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EC%97%90%ED%8F%AD%EC%8B%9C","site":"쿠팡"},{"id":"M216","cat":"접착·테이프","name":"에폭시 레진","spec":"1.5kg 대용량 2액형 빠른경화 고투명레진, 3세트\n주제 + 경화제) 15kg\n5kg (2.5kg레진, 2.5kg경화제","ch":"on","vendor":"","base":"kg당 5,300~16,500원","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EC%97%90%ED%8F%AD%EC%8B%9C%20%EB%A0%88%EC%A7%84%201.5kg%20%EB%8C%80%EC%9A%A9%EB%9F%89%202%EC%95%A1%ED%98%95%20%EB%B9%A0%EB%A5%B8%EA%B2%BD%ED%99%94%20%EA%B3%A0%ED%88%AC%EB%AA%85%EB%A0%88%EC%A7%84%203%EC%84%B8%ED%8A%B8","site":"미지정"},{"id":"M217","cat":"접착·테이프","name":"자가 접착식 카모테이프","spec":"5개","ch":"on","vendor":"","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EC%9E%90%EA%B0%80%20%EC%A0%91%EC%B0%A9%EC%8B%9D%20%EC%B9%B4%EB%AA%A8%ED%85%8C%EC%9D%B4%ED%94%84%205%EA%B0%9C","site":"미지정"},{"id":"M218","cat":"접착·테이프","name":"절연 테이프","spec":"검정\n블랙","ch":"on","vendor":"네이버","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EC%A0%88%EC%97%B0%20%ED%85%8C%EC%9D%B4%ED%94%84%20%EA%B2%80%EC%A0%95","site":"네이버"},{"id":"M219","cat":"접착·테이프","name":"접착 거울","spec":"","ch":"on","vendor":"","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EC%A0%91%EC%B0%A9%20%EA%B1%B0%EC%9A%B8","site":"미지정"},{"id":"M220","cat":"접착·테이프","name":"칼라 테이프","spec":"","ch":"on","vendor":"네이버","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EC%B9%BC%EB%9D%BC%20%ED%85%8C%EC%9D%B4%ED%94%84","site":"네이버"},{"id":"M221","cat":"접착·테이프","name":"할핀","spec":"","ch":"on","vendor":"도매핸즈","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%ED%95%A0%ED%95%80","site":"핸즈코리아"},{"id":"M222","cat":"접착·테이프","name":"회로테이프","spec":"","ch":"on","vendor":"","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%ED%9A%8C%EB%A1%9C%ED%85%8C%EC%9D%B4%ED%94%84","site":"미지정"},{"id":"M223","cat":"조형·마감","name":"돔 케이스 1600세트","spec":"","ch":"on","vendor":"","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EB%8F%94%20%EC%BC%80%EC%9D%B4%EC%8A%A4%201600%EC%84%B8%ED%8A%B8","site":"미지정"},{"id":"M224","cat":"조형·마감","name":"레진 몰드","spec":"","ch":"on","vendor":"","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EB%A0%88%EC%A7%84%20%EB%AA%B0%EB%93%9C","site":"미지정"},{"id":"M225","cat":"조형·마감","name":"말랑플라 흰색","spec":"500g/200g","ch":"on","vendor":"","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EB%A7%90%EB%9E%91%ED%94%8C%EB%9D%BC%20%ED%9D%B0%EC%83%89%20500g%20200g","site":"미지정"},{"id":"M226","cat":"조형·마감","name":"물경치 젤","spec":"50G","ch":"on","vendor":"","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EB%AC%BC%EA%B2%BD%EC%B9%98%20%EC%A0%A4%2050G","site":"미지정"},{"id":"M227","cat":"조형·마감","name":"석고가루","spec":"1kg","ch":"on","vendor":"","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EC%84%9D%EA%B3%A0%EA%B0%80%EB%A3%A8%201kg","site":"미지정"},{"id":"M228","cat":"조형·마감","name":"석고붕대","spec":"15×360 cm 12EA","ch":"on","vendor":"","base":"","hq":"5월","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EC%84%9D%EA%B3%A0%EB%B6%95%EB%8C%80%2015%C3%97360%20cm%2012EA","site":"미지정"},{"id":"M229","cat":"조형·마감","name":"스컬피(폴리머 클레이)","spec":"454g\n1LB / 점토 폴리머 클레이 sculpey 454g","ch":"on","vendor":"","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EC%8A%A4%EC%BB%AC%ED%94%BC%20454g","site":"미지정"},{"id":"M230","cat":"조형·마감","name":"유토","spec":"","ch":"on","vendor":"","base":"","hq":"6월","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EC%9C%A0%ED%86%A0","site":"미지정"},{"id":"M231","cat":"조형·마감","name":"작품케이스","spec":"","ch":"on","vendor":"","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EC%9E%91%ED%92%88%EC%BC%80%EC%9D%B4%EC%8A%A4","site":"미지정"},{"id":"M232","cat":"조형·마감","name":"족자 프레임","spec":"","ch":"on","vendor":"","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EC%A1%B1%EC%9E%90%20%ED%94%84%EB%A0%88%EC%9E%84","site":"미지정"},{"id":"M233","cat":"조형·마감","name":"지점토","spec":"","ch":"on","vendor":"핸즈코리아","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EC%A7%80%EC%A0%90%ED%86%A0","site":"핸즈코리아"},{"id":"M234","cat":"조형·마감","name":"캔버스","spec":"","ch":"on","vendor":"","base":"","hq":"5월","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EC%BA%94%EB%B2%84%EC%8A%A4","site":"미지정"},{"id":"M235","cat":"조형·마감","name":"캔버스천액자","spec":"","ch":"on","vendor":"핸즈코리아","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EC%BA%94%EB%B2%84%EC%8A%A4%EC%B2%9C%EC%95%A1%EC%9E%90","site":"핸즈코리아"},{"id":"M236","cat":"조형·마감","name":"클레이","spec":"500G 빨/주/노/초/파/살구/검/화이트\n50G 빨/주/노/초/파/살구/검/화이트\n빨강, 노랑, 파랑, 초록, 살구, 밤색 검정, 흰색","ch":"off","vendor":"오프라인 (거래처명 확인필요)","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%ED%81%B4%EB%A0%88%EC%9D%B4%20500G%20%EB%B9%A8%20%EC%A3%BC%20%EB%85%B8%20%EC%B4%88%20%ED%8C%8C%20%EC%82%B4%EA%B5%AC%20%EA%B2%80%20%ED%99%94%EC%9D%B4%ED%8A%B8","site":"클레이 거래처"},{"id":"M237","cat":"종이류","name":"4절지/ 8절지","spec":"","ch":"on","vendor":"초이문구","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=4%EC%A0%88%EC%A7%80%208%EC%A0%88%EC%A7%80","site":"기타"},{"id":"M238","cat":"종이류","name":"A3용지","spec":"","ch":"on","vendor":"","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=A3%EC%9A%A9%EC%A7%80","site":"미지정"},{"id":"M239","cat":"종이류","name":"A4 복사용지","spec":"75g, 2500매, 4박스\nA4용지) 90g 2500매 1 BO×\n80g 4000EA","ch":"on","vendor":"네이버","base":"매당 8원","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=A4%20%EB%B3%B5%EC%82%AC%EC%9A%A9%EC%A7%80%2075g%202500%EB%A7%A4%204%EB%B0%95%EC%8A%A4","site":"네이버"},{"id":"M240","cat":"종이류","name":"CD","spec":"","ch":"on","vendor":"","base":"","hq":"11월","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=CD","site":"미지정"},{"id":"M241","cat":"종이류","name":"OHP 필름","spec":"100매\nA4 사이즈 100EA","ch":"on","vendor":"","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=OHP%20%ED%95%84%EB%A6%84%20100%EB%A7%A4","site":"미지정"},{"id":"M242","cat":"종이류","name":"거울지","spec":"100장","ch":"on","vendor":"","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EA%B1%B0%EC%9A%B8%EC%A7%80%20100%EC%9E%A5","site":"미지정"},{"id":"M243","cat":"종이류","name":"껍질시트","spec":"","ch":"on","vendor":"","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EA%BB%8D%EC%A7%88%EC%8B%9C%ED%8A%B8","site":"미지정"},{"id":"M244","cat":"종이류","name":"대발순지","spec":"30g","ch":"on","vendor":"","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EB%8C%80%EB%B0%9C%EC%88%9C%EC%A7%80%2030g","site":"미지정"},{"id":"M245","cat":"종이류","name":"도시락 용지","spec":"","ch":"on","vendor":"","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EB%8F%84%EC%8B%9C%EB%9D%BD%20%EC%9A%A9%EC%A7%80","site":"미지정"},{"id":"M246","cat":"종이류","name":"도화지","spec":"220g\n170g 125매\n100매","ch":"on","vendor":"","base":"8절 130g 장당 64~146원","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EB%8F%84%ED%99%94%EC%A7%80%20220g","site":"미지정"},{"id":"M247","cat":"종이류","name":"드로잉패드","spec":"a2사이즈","ch":"on","vendor":"","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EB%93%9C%EB%A1%9C%EC%9E%89%ED%8C%A8%EB%93%9C%20a2%EC%82%AC%EC%9D%B4%EC%A6%88","site":"미지정"},{"id":"M248","cat":"종이류","name":"먹지","spec":"","ch":"on","vendor":"","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EB%A8%B9%EC%A7%80","site":"미지정"},{"id":"M249","cat":"종이류","name":"바란","spec":"대나무잎, 잎파리) 1000매","ch":"on","vendor":"네이버","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EB%B0%94%EB%9E%80%20%EB%8C%80%EB%82%98%EB%AC%B4%EC%9E%8E%20%EC%9E%8E%ED%8C%8C%EB%A6%AC%29%201000%EB%A7%A4","site":"네이버"},{"id":"M250","cat":"종이류","name":"백색 대용량 바인더","spec":"","ch":"on","vendor":"11번가","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EB%B0%B1%EC%83%89%20%EB%8C%80%EC%9A%A9%EB%9F%89%20%EB%B0%94%EC%9D%B8%EB%8D%94","site":"11번가"},{"id":"M251","cat":"종이류","name":"셀로판지","spec":"70매, 100장","ch":"on","vendor":"","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EC%85%80%EB%A1%9C%ED%8C%90%EC%A7%80%2070%EB%A7%A4%20100%EC%9E%A5","site":"미지정"},{"id":"M252","cat":"종이류","name":"슈링클 종이","spec":"","ch":"on","vendor":"","base":"","hq":"1월","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EC%8A%88%EB%A7%81%ED%81%B4%20%EC%A2%85%EC%9D%B4","site":"미지정"},{"id":"M253","cat":"종이류","name":"인화지","spec":"50매\n200매","ch":"on","vendor":"","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EC%9D%B8%ED%99%94%EC%A7%80%2050%EB%A7%A4","site":"미지정"},{"id":"M254","cat":"종이류","name":"잉크젯 전용지","spec":"","ch":"on","vendor":"","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EC%9E%89%ED%81%AC%EC%A0%AF%20%EC%A0%84%EC%9A%A9%EC%A7%80","site":"미지정"},{"id":"M255","cat":"종이류","name":"점보롤","spec":"","ch":"on","vendor":"G마켓","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EC%A0%90%EB%B3%B4%EB%A1%A4","site":"G마켓"},{"id":"M256","cat":"종이류","name":"제본표지","spec":"반투명\n블랙\n블루","ch":"on","vendor":"","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EC%A0%9C%EB%B3%B8%ED%91%9C%EC%A7%80%20%EB%B0%98%ED%88%AC%EB%AA%85","site":"미지정"},{"id":"M257","cat":"종이류","name":"주름지","spec":"Crepe pater) 미디엄","ch":"on","vendor":"","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EC%A3%BC%EB%A6%84%EC%A7%80%20Crepe%20pater%29%20%EB%AF%B8%EB%94%94%EC%97%84","site":"미지정"},{"id":"M258","cat":"종이류","name":"중국종이","spec":"","ch":"on","vendor":"","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EC%A4%91%EA%B5%AD%EC%A2%85%EC%9D%B4","site":"미지정"},{"id":"M259","cat":"종이류","name":"크로키북/스케치북","spec":"","ch":"on","vendor":"G마켓","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%ED%81%AC%EB%A1%9C%ED%82%A4%EB%B6%81%20%EC%8A%A4%EC%BC%80%EC%B9%98%EB%B6%81","site":"G마켓"},{"id":"M260","cat":"종이류","name":"특수합지 크래프트","spec":"","ch":"on","vendor":"","base":"","hq":"9월","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%ED%8A%B9%EC%88%98%ED%95%A9%EC%A7%80%20%ED%81%AC%EB%9E%98%ED%94%84%ED%8A%B8","site":"미지정"},{"id":"M261","cat":"종이류","name":"포장지","spec":"","ch":"on","vendor":"","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%ED%8F%AC%EC%9E%A5%EC%A7%80","site":"미지정"},{"id":"M262","cat":"포장·박스","name":"미니 공병","spec":"","ch":"on","vendor":"G마켓","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EB%AF%B8%EB%8B%88%20%EA%B3%B5%EB%B3%91","site":"G마켓"},{"id":"M263","cat":"포장·박스","name":"박스(골판지)","spec":"100×100×100 (단위 원문 미기재)\n100×100×100 200개\n100×100×100 박스 (단위 원문 미기재)\n100×100×70 180개\n140×70×70 B-5 (단위 원문 미기재)\n200×200×200 (단위 원문 미기재)\n260×70×70 B-301 (단위 원문 미기재)\n340×230×140 (단위 원문 미기재)","ch":"on","vendor":"박스바다 / 네이버 / 안박스","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EB%B0%95%EC%8A%A4%20100%C3%97100%C3%97100","site":"네이버"},{"id":"M264","cat":"포장·박스","name":"배접 비닐봉투","spec":"40L, 200개\n40L 400개\n40매","ch":"on","vendor":"네이버","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EB%B0%B0%EC%A0%91%20%EB%B9%84%EB%8B%90%EB%B4%89%ED%88%AC%2040L%20200%EA%B0%9C","site":"네이버"},{"id":"M265","cat":"포장·박스","name":"아령 공병","spec":"","ch":"on","vendor":"","base":"","hq":"2월","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EC%95%84%EB%A0%B9%20%EA%B3%B5%EB%B3%91","site":"미지정"},{"id":"M266","cat":"포장·박스","name":"재활용 쓰레기봉투","spec":"속지5호, 200장) 5개 / 평판봉투(대)50, 8개\n대)흰색50장\n5호) 투명 200장","ch":"on","vendor":"","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%EC%9E%AC%ED%99%9C%EC%9A%A9%20%EC%93%B0%EB%A0%88%EA%B8%B0%EB%B4%89%ED%88%AC%20%EC%86%8D%EC%A7%805%ED%98%B8%20200%EC%9E%A5%29%205%EA%B0%9C%20%ED%8F%89%ED%8C%90%EB%B4%89%ED%88%AC%2050%208%EA%B0%9C","site":"미지정"},{"id":"M267","cat":"포장·박스","name":"펄프박스","spec":"","ch":"on","vendor":"","base":"","hq":"","pool":false,"url":"","surl":"https://search.shopping.naver.com/search/all?query=%ED%8E%84%ED%94%84%EB%B0%95%EC%8A%A4","site":"미지정"}];
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const $ = s => document.querySelector(s);
+const esc = s => String(s??'').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const won = n => (n==null||n==='')?'':Number(n).toLocaleString('ko-KR');
+
+const OFFLINE_SITES = ['본사','대성 우드락','은성지관','클레이 거래처','오프라인'];
+const isOff = m => OFFLINE_SITES.includes(m.site || '미지정');
+
+
+let me = null, master = [], reqs = [], cart = [];
+const CATS = [...new Set(SEED.map(m=>m.cat))].sort();
+
+$('#today').textContent = new Date().toLocaleDateString('ko-KR',{month:'long',day:'numeric',weekday:'short'});
+
+// ── 인증
+onAuthStateChanged(auth, async u => {
+  me = u;
+  $('#whoami').textContent = u ? u.email : '로그인 필요';
+  $('#authBtn').textContent = u ? '로그아웃' : '로그인';
+  if (u) { await seedIfEmpty(); watch(); }
+});
+$('#authBtn').onclick = () => me ? signOut(auth) : signInWithPopup(auth, new GoogleAuthProvider());
+
+// ── 최초 1회 마스터 적재
+async function seedIfEmpty(){
+  const snap = await getDocs(collection(db,'materials'));
+  if (!snap.empty) return;
+  for (let i=0;i<SEED.length;i+=400){
+    const b = writeBatch(db);
+    SEED.slice(i,i+400).forEach(m => b.set(doc(db,'materials',m.id), m));
+    await b.commit();
+  }
+}
+
+// ── 실시간 구독
+function watch(){
+  onSnapshot(collection(db,'materials'), s => {
+    master = s.docs.map(d=>({...d.data(), id:d.id}))
+      .sort((a,b)=> a.cat.localeCompare(b.cat,'ko') || a.name.localeCompare(b.name,'ko'));
+    renderItems(); renderOff(); renderCat(); renderAgg();
+    if($('#orderModal').classList.contains('on')) renderOrder();
+  });
+  onSnapshot(query(collection(db,'requests')), s => {
+    reqs = s.docs.map(d=>({...d.data(), id:d.id}));
+    renderAgg();
+  });
+}
+
+// ── 탭
+document.querySelectorAll('.appbar nav button').forEach(b => b.onclick = () => {
+  document.querySelectorAll('.appbar nav button').forEach(x=>x.removeAttribute('aria-current'));
+  b.setAttribute('aria-current','page');
+  const t0 = b.dataset.tab;
+  ['req','off','agg','cat'].forEach(t => $('#tab-'+t).hidden = (t !== t0));
+  const isReq = (t0==='req' || t0==='off');
+  $('#requester').style.display = isReq ? 'block' : 'none';
+  $('.cart').style.display = isReq ? 'block' : 'none';
+});
+
+// ── 분류 칩
+let activeCat = '';
+$('#cats').innerHTML = ['전체',...[...new Set(SEED.filter(m=>!isOff(m)).map(m=>m.cat))].sort()].map(c =>
+  `<button class="chip" data-c="${c==='전체'?'':esc(c)}" aria-pressed="${c==='전체'}">${esc(c)}</button>`).join('');
+$('#cats').onclick = e => {
+  const b = e.target.closest('.chip'); if(!b) return;
+  activeCat = b.dataset.c;
+  $('#cats').querySelectorAll('.chip').forEach(x=>x.setAttribute('aria-pressed', x===b));
+  renderItems();
+};
+$('#q').oninput = renderItems;
+
+// ── 품목 카드
+
+function cardHtml(m){
+  return `<div class="item" data-id="${esc(m.id)}">
+      <h4>${esc(m.name)}</h4>
+      <div class="tags">
+        <span class="badge">${esc(m.cat)}</span>
+        ${m.hq?`<span class="badge badge-hq">본사 ${esc(m.hq)}</span>`:''}
+      </div>
+      <div class="meta">${esc(m.spec||'규격 미등록 — 담을 때 입력합니다')}</div>
+      <div class="act">
+        <input type="number" min="1" step="1" placeholder="수량" class="num" aria-label="${esc(m.name)} 수량">
+        <button class="btn btn-sec btn-sm" style="flex:1">담기</button>
+      </div>
+    </div>`;
+}
+
+function renderOff(){
+  const kw = $('#qOff').value.trim().toLowerCase();
+  const list = master.filter(m => isOff(m) &&
+    (!kw || (m.name+' '+(m.spec||'')).toLowerCase().includes(kw)));
+  const g = {};
+  list.forEach(m => (g[m.site] = g[m.site] || []).push(m));
+  const order = OFFLINE_SITES.filter(v => g[v]);
+  $('#offBody').innerHTML = order.length ? order.map(v => `
+    <div class="vgrp">
+      <div class="vhead"><b>${esc(v)}</b><span class="brk"> ${g[v].length}품목</span></div>
+      <div class="grid">${g[v].map(cardHtml).join('')}</div>
+    </div>`).join('')
+    : '<div class="empty">조건에 맞는 거래처 품목이 없습니다.</div>';
+}
+
+function renderItems(){
+  const kw = $('#q').value.trim().toLowerCase();
+  const list = master.filter(m => !isOff(m) &&
+    (!activeCat || m.cat===activeCat) &&
+    (!kw || (m.name+' '+(m.spec||'')).toLowerCase().includes(kw)));
+  $('#items').innerHTML = list.length ? list.map(m => `
+    <div class="item" data-id="${m.id}">
+      <h4>${esc(m.name)}</h4>
+      <div class="tags">
+        <span class="badge">${esc(m.cat)}</span>
+        ${m.hq?`<span class="badge badge-hq">본사 ${esc(m.hq)}</span>`:''}
+      </div>
+      <div class="meta">${esc(m.spec||'규격 미등록 — 담을 때 입력합니다')}</div>
+      <div class="act">
+        <input type="number" min="1" step="1" placeholder="수량" class="num" aria-label="${esc(m.name)} 수량">
+        <button class="btn btn-sec btn-sm" style="flex:1">담기</button>
+      </div>
+    </div>`).join('')
+    : '<div class="empty" style="grid-column:1/-1">찾는 재료가 없나요? 검색어를 줄여 보시고, 그래도 없으면 위 <b>목록에 없는 재료 요청</b>으로 알려 주세요.</div>';
+}
+
+const pickHandler = e => {
+  const btn = e.target.closest('button'); if(!btn) return;
+  const el = e.target.closest('.item');
+  const m = master.find(x=>x.id===el.dataset.id);
+  const qty = parseInt(el.querySelector('input').value,10);
+  if(!qty || qty<1){ el.querySelector('input').focus(); return; }
+  if(!m.spec){ openSpec(m, qty); return; }
+  addCart(m, qty, m.spec);
+  el.querySelector('input').value='';
+};
+$('#items').onclick = pickHandler;
+$('#offBody').onclick = pickHandler;
+$('#qOff').oninput = () => renderOff();
+
+// ── 규격 필수 입력
+let pending = null;
+function openSpec(m, qty){
+  pending = {m, qty};
+  $('#smName').textContent = m.name;
+  $('#smSpec').value = '';
+  $('#specModal').classList.add('on');
+  $('#smSpec').focus();
+}
+$('#smOk').onclick = () => {
+  const v = $('#smSpec').value.trim();
+  if(!v){ $('#smSpec').focus(); return; }
+  addCart(pending.m, pending.qty, v);
+  $('#specModal').classList.remove('on');
+};
+
+function addCart(m, qty, spec){
+  const hit = cart.find(c=>c.itemId===m.id && c.spec===spec);
+  if(hit) hit.qty += qty;
+  else cart.push({itemId:m.id, name:m.name, cat:m.cat, spec, ch:m.ch, qty});
+  $('#cartN').textContent = cart.reduce((s,c)=>s+c.qty,0);
+}
+
+// ── 목록에 없는 재료 요청
+function similar(name){
+  const q = name.trim().toLowerCase();
+  if(q.length < 2) return [];
+  const toks = q.split(/\s+/).filter(t=>t.length>=2);
+  return master.map(m => {
+    const t = (m.name + ' ' + (m.spec||'')).toLowerCase();
+    let sc = 0;
+    if(t.includes(q)) sc += 10;
+    toks.forEach(k => { if(t.includes(k)) sc += 4; });
+    for(let i=0;i<q.length-1;i++) if(t.includes(q.slice(i,i+2))) sc += 1;
+    return {m, sc};
+  }).filter(x => x.sc >= 4).sort((a,b) => b.sc - a.sc).slice(0,4).map(x => x.m);
+}
+
+function renderHints(){
+  const hits = similar($('#xName').value);
+  if(!hits.length){ $('#xHints').innerHTML = ''; return; }
+  $('#xHints').innerHTML = `<div class="hint"><div class="h">이미 있는 품목 아닌가요?</div>` +
+    hits.map(m => `<div class="r"><div><b>${esc(m.name)}</b><div class="s">${esc(m.spec||'규격 미등록')}</div></div>
+      <button class="btn btn-sec btn-sm" data-pick="${esc(m.id)}">이걸로</button></div>`).join('') + `</div>`;
+}
+$('#customBtn').onclick = () => {
+  ['#xName','#xSpec','#xQty','#xUrl','#xWhy'].forEach(s=>$(s).value='');
+  $('#xHints').innerHTML = '';
+  $('#customModal').classList.add('on');
+  $('#xName').focus();
+};
+$('#xName').oninput = renderHints;
+$('#xHints').onclick = e => {
+  const b = e.target.closest('[data-pick]'); if(!b) return;
+  const m = master.find(x => x.id === b.dataset.pick);
+  const qty = parseInt($('#xQty').value,10) || 1;
+  if(!m.spec){ $('#customModal').classList.remove('on'); openSpec(m, qty); return; }
+  addCart(m, qty, m.spec);
+  $('#customModal').classList.remove('on');
+};
+$('#xOk').onclick = () => {
+  const name = $('#xName').value.trim(), spec = $('#xSpec').value.trim();
+  const qty = parseInt($('#xQty').value,10);
+  if(!name){ $('#xName').focus(); return; }
+  if(!spec){ $('#xSpec').focus(); return; }
+  if(!qty || qty < 1){ $('#xQty').focus(); return; }
+  cart.push({itemId:'X:'+name, name, cat:'미분류', spec, ch:'on', qty,
+             custom:true, refUrl:$('#xUrl').value.trim(), why:$('#xWhy').value.trim()});
+  $('#cartN').textContent = cart.reduce((s,c)=>s+c.qty,0);
+  $('#customModal').classList.remove('on');
+};
+
+// ── 장바구니
+$('#cartBtn').onclick = () => {
+  if(!cart.length) return;
+  $('#cartList').innerHTML = cart.map((c,i)=>`
+    <div style="display:flex;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line)">
+      <div style="flex:1"><b>${esc(c.name)}</b><div class="sub" style="margin:0">${esc(c.spec)}</div></div>
+      <span class="num" style="font-weight:700">${c.qty}</span>
+      <button class="btn btn-sec btn-sm" data-rm="${i}">빼기</button>
+    </div>`).join('');
+  $('#cartModal').classList.add('on');
+};
+$('#cartList').onclick = e => {
+  const b = e.target.closest('[data-rm]'); if(!b) return;
+  cart.splice(+b.dataset.rm,1);
+  $('#cartN').textContent = cart.reduce((s,c)=>s+c.qty,0);
+  cart.length ? $('#cartBtn').click() : $('#cartModal').classList.remove('on');
+};
+
+$('#submitBtn').onclick = async () => {
+  const branch = $('#fBranch').value, who = $('#fWho').value.trim();
+  if(!who){ $('#cartModal').classList.remove('on'); $('#fWho').focus(); return; }
+  const memo = $('#cMemo').value.trim();
+  $('#submitBtn').disabled = true;
+  for(const c of cart){
+    await addDoc(collection(db,'requests'), {...c, branch, requester:who, memo,
+      status:'요청', unitPrice:null, by:me.email, createdAt:serverTimestamp()});
+  }
+  cart = []; $('#cartN').textContent = '0'; $('#cMemo').value='';
+  $('#cartModal').classList.remove('on'); $('#submitBtn').disabled = false;
+  document.querySelector('[data-tab="agg"]').click();
+};
+
+// ── 모아보기
+$('#aSt').onchange = renderAgg;
+$('#aCh').onchange = renderAgg;
+$('#aView').onchange = renderAgg;
+$('#printBtn').onclick = () => window.print();
+
+const BRANCHES = ['평촌','반포','대치'];
+
+function groupRows(){
+  const st = $('#aSt').value, ch = $('#aCh').value;
+  return reqs.filter(r => (!st || r.status===st) && (!ch || r.ch===ch));
+}
+function meta(name){ return master.find(x=>x.name===name) || {}; }
+
+// ── 구매처: 검색 주소 틀. 바뀌면 이 줄만 고치면 된다.
+const SITE_SEARCH = {
+  '네이버':'https://search.shopping.naver.com/search/all?query=',
+  '쿠팡':'https://www.coupang.com/np/search?q=',
+  '11번가':'https://search.11st.co.kr/Search.tmall?kwd=',
+  'G마켓':'https://browse.gmarket.co.kr/search?keyword=',
+  '옥션':'https://browse.auction.co.kr/search?keyword=',
+  '알리익스프레스':'https://ko.aliexpress.com/wholesale?SearchText=',
+  '테무':'https://www.temu.com/search_result.html?search_key='
+};
+const SITE_ORDER = ['네이버','쿠팡','11번가','G마켓','옥션','알리익스프레스','테무','핸즈코리아','기타','미지정','본사','대성 우드락','은성지관','클레이 거래처','오프라인'];
+
+
+const siteOf = name => (meta(name).site) || '미지정';
+function searchUrl(m){
+  const base = SITE_SEARCH[m.site] || SITE_SEARCH['네이버'];
+  const q = (m.surl||'').split('query=')[1] || encodeURIComponent(m.name||'');
+  return base + q;
+}
+function linkOf(name){
+  const m = meta(name);
+  if(m.url) return {u:m.url, kind:'확정'};
+  if(OFFLINE_SITES.includes(m.site)) return {u:'', kind:'오프라인'};
+  return {u:searchUrl(m), kind:'검색'};
+}
+
+function stCls(s){ return s==='주문완료'?'st-done':s==='장바구니'?'st-cart':'st-req'; }
+
+function itemCell(v){
+  const m = meta(v.name);
+  return `<b>${esc(v.name)}</b>${v.ch==='off'?' <span class="badge badge-off">오프라인</span>':''}${v.pool?' <span class="badge badge-pool">분배</span>':''}
+    <div class="sub" style="margin:0">${esc(v.spec)}</div>
+    ${m.vendor?`<div class="brk">${esc(m.vendor)}</div>`:''}
+    ${m.url?`<div><a class="brk" href="${esc(m.url)}" target="_blank" rel="noopener">상품 페이지</a></div>`:''}
+    ${v.custom?`<div style="margin-top:6px">
+      <span class="badge badge-new">목록에 없던 재료</span>
+      ${v.why?`<span class="brk"> ${esc(v.why)}</span>`:''}
+      ${v.refUrl?` <a class="brk" href="${esc(v.refUrl)}" target="_blank" rel="noopener">참고 링크</a>`:''}
+      <div style="margin-top:4px"><button class="btn btn-sec btn-sm" data-reg="${v.gi}">정식 품목으로 등록</button></div>
+    </div>`:''}`;
+}
+function actCells(v){
+  const m = meta(v.name);
+  return `<td class="brk">${esc(m.base||'—')}</td>
+    <td class="right"><input type="number" class="num" data-unit style="width:84px;padding:4px 6px" value="${v.unit??''}" placeholder="—"></td>
+    <td class="right num">${v.unit?won(v.unit*v.qty):'—'}</td>
+    <td><span class="st ${stCls(v.status)}">${esc(v.status)}</span></td>
+    <td><select data-next style="padding:4px 6px;font-size:12px">
+      <option value="">이동</option><option value="요청">요청</option>
+      <option value="장바구니">장바구니</option><option value="주문완료">주문완료</option>
+      <option value="__del">삭제</option></select></td>`;
+}
+
+function renderAgg(){
+  const rows = groupRows();
+  const byBranch = $('#aView').value !== 'item';
+  const g = {};
+  rows.forEach(r => {
+    const pool = !!(meta(r.name).pool);
+    const k = (byBranch && !pool ? r.branch+'|' : '') + r.itemId + '|' + r.spec;
+    g[k] = g[k] || {branch:r.branch, pool, name:r.name, spec:r.spec, ch:r.ch, br:{}, qty:0, ids:[],
+                    unit:r.unitPrice, status:r.status, custom:!!r.custom, refUrl:r.refUrl||'', why:r.why||''};
+    g[k].br[r.branch] = (g[k].br[r.branch]||0) + r.qty;
+    g[k].qty += r.qty; g[k].ids.push(r.id);
+    if(r.unitPrice!=null) g[k].unit = r.unitPrice;
+  });
+  aggArr = Object.entries(g).sort((a,b)=>b[1].qty-a[1].qty);
+  aggArr.forEach(([,v],i)=> v.gi = i);
+
+  const amt = v => v.unit ? v.unit*v.qty : 0;
+  const total = aggArr.reduce((s,[,v])=> s+amt(v), 0);
+
+  if(byBranch){
+    const pooled = aggArr.filter(([,v])=> v.pool);
+    const local  = aggArr.filter(([,v])=> !v.pool);
+    const per = {};
+    BRANCHES.forEach(b => per[b] = {n:0, qty:0, amt:0});
+    local.forEach(([,v])=>{ const p = per[v.branch] || (per[v.branch]={n:0,qty:0,amt:0}); p.n++; p.qty+=v.qty; p.amt+=amt(v); });
+    const poolAmt = pooled.reduce((s,[,v])=>s+amt(v),0);
+
+    $('#sum').innerHTML =
+      Object.entries(per).map(([b,p])=>`
+      <div class="box"><div class="k">${esc(b)}원 · ${p.n}품목</div><div class="v num">${p.amt?won(p.amt):p.qty}</div>
+      <div class="brk">${p.amt?'원':'개 (단가 미입력)'}</div></div>`).join('') +
+      (pooled.length?`<div class="box"><div class="k">합쳐 주문 · ${pooled.length}품목</div><div class="v num">${poolAmt?won(poolAmt):pooled.reduce((s,[,v])=>s+v.qty,0)}</div><div class="brk">${poolAmt?'원':'개 (단가 미입력)'}</div></div>`:'') +
+      `<div class="box"><div class="k">전체 합계</div><div class="v num">${total?won(total):'—'}</div></div>`;
+
+    $('#aggHead').innerHTML = `<tr><th style="width:34%">품목</th><th class="right" style="width:8%">수량</th>
+      <th style="width:16%">기준단가</th><th class="right" style="width:10%">실단가</th>
+      <th class="right" style="width:11%">금액</th><th style="width:10%">상태</th><th style="width:11%"></th></tr>`;
+
+    const bySite = list => {
+      const o = {};
+      list.forEach(e => { const st = siteOf(e[1].name); (o[st] = o[st] || []).push(e); });
+      return SITE_ORDER.filter(st => o[st]).map(st => [st, o[st]])
+        .concat(Object.keys(o).filter(st=>!SITE_ORDER.includes(st)).map(st=>[st,o[st]]));
+    };
+    const rowsOf = list => list.map(([,v])=>`<tr data-ids="${v.ids.join(',')}">
+      <td>${itemCell(v)}${v.pool?`<div class="brk">${Object.entries(v.br).map(([b,q])=>`${esc(b)} <b class="num">${q}</b>`).join(' · ')}</div>`:''}</td>
+      <td class="right num"><b>${v.qty}</b></td>${actCells(v)}</tr>`).join('');
+    const siteRows = (list, scope) => bySite(list).map(([st, items]) => {
+      const q = items.reduce((s,[,v])=>s+v.qty,0);
+      return `<tr class="sub"><td colspan="7"><span class="site">${esc(st)}</span>
+        <span class="brk">${items.length}품목 · ${q}개</span>
+        <button class="btn btn-sec btn-sm" style="float:right" data-order="${esc(scope)}|${esc(st)}">주문 준비</button></td></tr>`
+        + rowsOf(items);
+    }).join('');
+
+    let html = '';
+    const order = [...BRANCHES, ...Object.keys(per).filter(b=>!BRANCHES.includes(b))];
+    order.forEach(b => {
+      const list = local.filter(([,v])=>v.branch===b);
+      if(!list.length) return;
+      const p = per[b];
+      html += `<tr class="grp"><td colspan="7"><b>${esc(b)}원</b>
+        <span class="brk"> ${p.n}품목 · ${p.qty}개${p.amt?' · '+won(p.amt)+'원':''} — 이 원으로 직접 배송</span>
+        <button class="btn btn-sec btn-sm" style="float:right" data-order="${esc(b)}|*">전체 주문 준비</button></td></tr>`;
+      html += siteRows(list, b);
+    });
+    if(pooled.length){
+      html += `<tr class="grp grp-pool"><td colspan="7"><b>합쳐서 한 번에 주문</b>
+        <span class="brk"> ${pooled.length}품목 · ${pooled.reduce((s,[,v])=>s+v.qty,0)}개${poolAmt?' · '+won(poolAmt)+'원':''} — 받아서 원별로 나눠 주세요</span>
+        <button class="btn btn-sec btn-sm" style="float:right" data-order="pool|*">전체 주문 준비</button></td></tr>`;
+      html += siteRows(pooled, 'pool');
+    }
+    $('#aggBody').innerHTML = html || '<tr><td colspan="7"><div class="empty">아직 요청이 없습니다. 요청하기 탭에서 재료를 담아 보세요.</div></td></tr>';
+    return;
+  }
+
+  // 품목별 — 원마다 단가가 다른지 비교용
+  $('#sum').innerHTML = `
+    <div class="box"><div class="k">품목 수</div><div class="v num">${aggArr.length}</div></div>
+    <div class="box"><div class="k">총 수량</div><div class="v num">${aggArr.reduce((s,[,v])=>s+v.qty,0)}</div></div>
+    <div class="box"><div class="k">2개 원 이상 요청</div><div class="v num">${aggArr.filter(([,v])=>Object.keys(v.br).length>1).length}</div></div>
+    <div class="box"><div class="k">합계 금액</div><div class="v num">${total?won(total):'—'}</div></div>`;
+
+  $('#aggHead').innerHTML = `<tr><th style="width:28%">품목</th><th style="width:16%">원별 요청</th>
+    <th class="right" style="width:7%">합계</th><th style="width:15%">기준단가</th>
+    <th class="right" style="width:9%">실단가</th><th class="right" style="width:10%">금액</th>
+    <th style="width:8%">상태</th><th style="width:7%"></th></tr>`;
+
+  $('#aggBody').innerHTML = aggArr.length ? aggArr.map(([,v])=>`<tr data-ids="${v.ids.join(',')}">
+    <td>${itemCell(v)}</td>
+    <td class="brk">${Object.entries(v.br).map(([b,q])=>`${esc(b)} <b class="num">${q}</b>`).join(' · ')}</td>
+    <td class="right num"><b>${v.qty}</b></td>${actCells(v)}</tr>`).join('')
+    : '<tr><td colspan="8"><div class="empty">아직 요청이 없습니다. 요청하기 탭에서 재료를 담아 보세요.</div></td></tr>';
+}
+
+
+// ── 주문 준비: 상품 URL 일괄 열기
+const BATCH = 5;
+let orderList = [], orderIdx = 0, orderKey = '';
+
+function copyText(t){
+  const done = () => toast('복사했습니다');
+  if(navigator.clipboard && window.isSecureContext){
+    navigator.clipboard.writeText(t).then(done).catch(()=>fallbackCopy(t,done));
+  } else fallbackCopy(t, done);
+}
+function fallbackCopy(t, done){
+  const ta = document.createElement('textarea');
+  ta.value = t; ta.style.position='fixed'; ta.style.opacity='0';
+  document.body.appendChild(ta); ta.select();
+  try{ document.execCommand('copy'); done(); }catch(e){ alert('복사하지 못했습니다. 직접 선택해 주세요.'); }
+  document.body.removeChild(ta);
+}
+let toastT = null;
+function toast(msg){
+  let el = $('#toast');
+  if(!el){ el = document.createElement('div'); el.id='toast'; document.body.appendChild(el); }
+  el.textContent = msg; el.className = 'on';
+  clearTimeout(toastT); toastT = setTimeout(()=>el.className='', 1800);
+}
+
+function openOrder(key){
+  orderKey = key; orderIdx = 0;
+  const [scope, site] = key.split('|');
+  orderList = aggArr
+    .filter(([,v]) => scope==='pool' ? v.pool : (!v.pool && v.branch===scope))
+    .filter(([,v]) => site==='*' || siteOf(v.name)===site)
+    .map(([,v])=>v);
+  const who = scope==='pool' ? '합쳐 주문' : scope+'원';
+  $('#obTitle').textContent = who + (site==='*' ? '' : ' · ' + site) + ' — 주문 준비';
+  renderOrder();
+  $('#orderModal').classList.add('on');
+}
+
+function renderOrder(){
+  const link = v => linkOf(v.name);
+  const fixed = orderList.filter(v => link(v).kind==='확정').length;
+  const off = orderList.filter(v => link(v).kind==='오프라인').length;
+  $('#obHint').innerHTML = `${BATCH}개씩 새 탭으로 엽니다. 등록해 둔 상품 ${fixed}개는 그 페이지로, 나머지는 구매처 검색 결과로 열립니다.` +
+    (off ? ` 오프라인 ${off}개는 열리지 않습니다 — 아래 <b>목록 전체 복사</b>로 거래처에 보내세요.` : '');
+  $('#obList').innerHTML = orderList.map((v,i) => {
+    const L = link(v);
+    const kb = L.kind==='확정' ? '<span class="badge badge-fix">등록 상품</span>'
+             : L.kind==='오프라인' ? '<span class="badge badge-off">오프라인</span>'
+             : '<span class="badge badge-sea">검색</span>';
+    return `<div class="ob-r${i<orderIdx?' done':''}">
+      <div class="ob-n"><b>${esc(v.name)}</b> ${kb}
+        <div class="s">${esc(v.spec)}</div></div>
+      <div class="ob-q num">${v.qty}</div>
+      <button class="btn btn-sec btn-sm" data-ocopy="${v.qty}">수량 복사</button>
+      ${L.u ? `<button class="btn btn-sec btn-sm" data-oone="${esc(L.u)}">열기</button>` : ''}
+    </div>`;
+  }).join('') || '<div class="empty">이 묶음에는 품목이 없습니다.</div>';
+  const left = orderList.filter(v => link(v).u).length - orderIdx;
+  const b = $('#obNext');
+  b.disabled = left <= 0;
+  b.textContent = left <= 0 ? '모두 열었습니다' : (orderIdx ? `다음 ${Math.min(BATCH,left)}개 열기` : `상품 열기 (${Math.min(BATCH,left)}개)`);
+}
+
+$('#obNext').onclick = () => {
+  const withUrl = orderList.filter(v => linkOf(v.name).u);
+  const batch = withUrl.slice(orderIdx, orderIdx + BATCH);
+  let blocked = 0;
+  batch.forEach(v => { if(!window.open(linkOf(v.name).u, '_blank', 'noopener')) blocked++; });
+  orderIdx += batch.length;
+  renderOrder();
+  if(blocked) alert('브라우저가 새 탭 열기를 막았습니다. 주소창 옆 팝업 차단을 이 사이트에 한해 허용해 주세요.');
+};
+$('#obList').onclick = e => {
+  const c = e.target.closest('[data-ocopy]'); if(c){ copyText(c.dataset.ocopy); return; }
+  const o = e.target.closest('[data-oone]'); if(o){ window.open(o.dataset.oone, '_blank', 'noopener'); }
+};
+$('#obCopyAll').onclick = () => {
+  const [sc, si] = orderKey.split('|');
+  const head = '[' + (sc==='pool'?'합쳐 주문':sc+'원') + (si==='*'?'':' · '+si) + ']';
+  copyText([head, ...orderList.map(v => `${v.name} / ${v.spec} / ${v.qty}개`)].join('\n'));
+};
+
+$('#aggBody').addEventListener('click', e => {
+  const o = e.target.closest('[data-order]');
+  if(o){ openOrder(o.dataset.order); return; }
+  const b = e.target.closest('[data-reg]'); if(!b) return;
+  const v = aggArr[+b.dataset.reg][1];
+  regIds = v.ids.slice();
+  $('#nName').value = v.name; $('#nSpec').value = v.spec; $('#nVendor').value = '';
+  $('#nUrl').value = v.refUrl || '';
+  $('#newModal').classList.add('on');
+});
+
+$('#aggBody').addEventListener('change', async e => {
+  const tr = e.target.closest('tr'); const ids = tr.dataset.ids.split(',');
+  if(e.target.matches('[data-unit]')){
+    const v = e.target.value===''?null:Number(e.target.value);
+    for(const id of ids) await updateDoc(doc(db,'requests',id), {unitPrice:v, updatedBy:me.email});
+    return;
+  }
+  if(e.target.matches('[data-next]')){
+    const v = e.target.value; if(!v) return;
+    if(v==='__del'){ openDel(ids, tr.querySelector('b').textContent); e.target.value=''; return; }
+    for(const id of ids) await updateDoc(doc(db,'requests',id), {status:v, updatedBy:me.email});
+  }
+});
+
+// ── 삭제 확인
+let aggArr = [], regIds = [];
+let delIds = [];
+function openDel(ids, what){
+  delIds = ids;
+  $('#delWhat').textContent = `${what} · ${ids.length}건`;
+  $('#delModal').classList.add('on');
+}
+$('#delOk').onclick = async () => {
+  for(const id of delIds) await deleteDoc(doc(db,'requests',id));
+  $('#delModal').classList.remove('on');
+};
+
+// ── 품목관리
+
+// ── 품목관리: 선택 / 일괄 변경
+let picked = new Set(), catFilter = '';
+
+function catList(){
+  const kw = $('#cq').value.trim().toLowerCase();
+  return master.filter(m => {
+    if(kw && !(m.name+' '+(m.spec||'')+' '+(m.vendor||'')).toLowerCase().includes(kw)) return false;
+    if(catFilter==='nosite' && (m.site||'미지정')!=='미지정') return false;
+    if(catFilter==='nospec' && m.spec) return false;
+    if(catFilter==='hq' && !m.hq) return false;
+    if(catFilter==='pool' && !m.pool) return false;
+    if(catFilter==='nourl' && m.url) return false;
+    return true;
+  });
+}
+
+function renderBulk(){
+  const n = picked.size;
+  $('#bulkBar').className = n ? 'bulk on' : 'bulk';
+  $('#bulkN').textContent = n;
+}
+
+$('#cqFilters').onclick = e => {
+  const b = e.target.closest('.chip'); if(!b) return;
+  catFilter = b.dataset.f;
+  $('#cqFilters').querySelectorAll('.chip').forEach(x=>x.setAttribute('aria-pressed', x===b));
+  renderCat();
+};
+
+$('#catAll').onchange = e => {
+  const ids = catList().map(m=>m.id);
+  if(e.target.checked) ids.forEach(i=>picked.add(i)); else ids.forEach(i=>picked.delete(i));
+  renderCat();
+};
+
+$('#bulkClear').onclick = () => { picked.clear(); renderCat(); };
+
+$('#bulkSiteGo').onclick = async () => {
+  const v = $('#bulkSite').value;
+  const ids = [...picked];
+  if(!ids.length) return;
+  if(!confirm(`${ids.length}개 품목의 구매처를 "${v}"(으)로 바꿉니다.`)) return;
+  await applyBulk(ids, m => ({...m, site:v}));
+};
+$('#bulkHqGo').onclick = async () => {
+  const v = $('#bulkHq').value.trim();
+  const ids = [...picked];
+  if(!ids.length) return;
+  const msg = v ? `${ids.length}개 품목의 본사월을 "${v}"로 지정합니다.`
+                : `${ids.length}개 품목의 본사월을 지웁니다.`;
+  if(!confirm(msg)) return;
+  await applyBulk(ids, m => ({...m, hq:v}));
+  $('#bulkHq').value = '';
+};
+$('#bulkPoolOn').onclick  = () => bulkPool(true);
+$('#bulkPoolOff').onclick = () => bulkPool(false);
+async function bulkPool(v){
+  const ids = [...picked];
+  if(!ids.length) return;
+  await applyBulk(ids, m => ({...m, pool:v}));
+}
+
+async function applyBulk(ids, fn){
+  $('#bulkBar').classList.add('busy');
+  try{
+    for(let i=0;i<ids.length;i+=400){
+      const b = writeBatch(db);
+      ids.slice(i,i+400).forEach(id => {
+        const m = master.find(x=>x.id===id); if(!m) return;
+        b.set(doc(db,'materials',id), {...fn(m), updatedBy:me.email});
+      });
+      await b.commit();
+    }
+    picked.clear(); toast(ids.length+'개 반영했습니다');
+  }catch(e){ alert('일부를 저장하지 못했습니다. 다시 시도해 주세요.'); }
+  $('#bulkBar').classList.remove('busy');
+  renderCat();
+}
+
+$('#cq').oninput = renderCat;
+function renderCat(){
+  const list = catList();
+  $('#catN').textContent = master.length;
+  $('#catShown').textContent = list.length;
+  const allOn = list.length && list.every(m => picked.has(m.id));
+  const chk = $('#catAll'); if(chk) chk.checked = !!allOn;
+  renderBulk();
+  $('#catBody').innerHTML = list.map(m => `<tr data-id="${m.id}">
+    <td>${esc(m.cat)}</td>
+    <td><b>${esc(m.name)}</b>${m.ch==='off'?' <span class="badge badge-off">오프라인</span>':''}</td>
+    <td>${m.spec ? esc(m.spec) : '<span style="color:var(--brand-orange);font-weight:600">규격 없음</span>'}</td>
+    <td><select data-site style="padding:3px 4px;font-size:12px">${SITE_ORDER.map(x=>`<option${x===(m.site||'미지정')?' selected':''}>${esc(x)}</option>`).join('')}</select>
+      ${m.vendor?`<div class="brk" style="margin-top:2px">${esc(m.vendor)}</div>`:''}</td>
+    <td class="brk">${esc(m.base||'—')}</td>
+    <td><button class="btn btn-sec btn-sm" data-hq style="${m.hq?'background:#FBE9D4;border-color:#EBC89C;color:#9A5A08;font-weight:700':''}">${m.hq?esc(m.hq):'—'}</button></td>
+    <td><button class="btn btn-sec btn-sm" data-pool aria-pressed="${!!m.pool}" style="${m.pool?'background:#E3F2E6;border-color:#B6DCBF;color:#11722F;font-weight:700':''}">${m.pool?'분배가능':'원별'}</button></td>
+    <td><button class="btn btn-sec btn-sm" data-url style="${m.url?'background:#E7ECF2;border-color:#C7D2DD;color:var(--slot-navy);font-weight:700':''}">${m.url?'확정됨':'검색'}</button></td>
+    <td><button class="btn btn-sec btn-sm" data-edit>규격 수정</button></td>
+  </tr>`).join('');
+}
+$('#catBody').addEventListener('change', async e => {
+  if(!e.target.matches('[data-site]')) return;
+  const row = e.target.closest('tr'); const m = master.find(x=>x.id===row.dataset.id); if(!m) return;
+  await setDoc(doc(db,'materials',row.dataset.id), {...m, site:e.target.value, updatedBy:me.email});
+});
+
+$('#catBody').onclick = async e => {
+  const row = e.target.closest('tr'); if(!row) return;
+  const id = row.dataset.id;
+  if(e.target.matches('[data-pick]')){
+    e.target.checked ? picked.add(id) : picked.delete(id);
+    row.classList.toggle('sel', picked.has(id));
+    renderBulk();
+    const l = catList(); const chk = $('#catAll');
+    if(chk) chk.checked = l.length>0 && l.every(m=>picked.has(m.id));
+    return;
+  }
+  const m = master.find(x=>x.id===id); if(!m) return;
+  if(e.target.matches('[data-pool]')){
+    await setDoc(doc(db,'materials',id), {...m, pool:!m.pool, updatedBy:me.email});
+    return;
+  }
+  if(e.target.matches('[data-hq]')){
+    const v = prompt(`${m.name}\n본사에서 받아야 하는 달 (비우면 해제)\n예: 5월  또는  3월, 9월`, m.hq||'');
+    if(v===null) return;
+    await setDoc(doc(db,'materials',id), {...m, hq:v.trim(), updatedBy:me.email});
+    return;
+  }
+  if(e.target.matches('[data-url]')){
+    const v = prompt(`${m.name}\n상품 페이지 주소를 붙여넣으세요 (비우면 삭제)`, m.url||'');
+    if(v===null) return;
+    await setDoc(doc(db,'materials',id), {...m, url:v.trim(), updatedBy:me.email});
+    return;
+  }
+  if(!e.target.matches('[data-edit]')) return;
+  const v = prompt(`${m.name}\n규격을 입력하세요`, m.spec||'');
+  if(v===null) return;
+  await updateDoc(doc(db,'materials',id), {spec:v.trim(), updatedBy:me.email});
+};
+
+$('#nCat').innerHTML = CATS.map(c=>`<option>${esc(c)}</option>`).join('');
+$('#bulkSite').innerHTML = SITE_ORDER.map(x=>`<option>${esc(x)}</option>`).join('');
+$('#addBtn').onclick = () => $('#newModal').classList.add('on');
+$('#nOk').onclick = async () => {
+  const name=$('#nName').value.trim(), spec=$('#nSpec').value.trim();
+  if(!name){ $('#nName').focus(); return; }
+  if(!spec){ $('#nSpec').focus(); return; }
+  const id = 'N'+Date.now().toString(36);
+  await setDoc(doc(db,'materials',id), {id, name, spec, cat:$('#nCat').value,
+    vendor:$('#nVendor').value.trim(), url:$('#nUrl').value.trim(),
+    surl:'https://search.shopping.naver.com/search/all?query='+encodeURIComponent((name+' '+spec).slice(0,60)),
+    site:'미지정', ch:'on', base:'', hq:'', pool:false, by:me.email});
+  for(const rid of regIds) await updateDoc(doc(db,'requests',rid), {itemId:id, custom:false, updatedBy:me.email});
+  regIds = [];
+  ['#nName','#nSpec','#nVendor','#nUrl'].forEach(s=>$(s).value='');
+  $('#newModal').classList.remove('on');
+};
+
+// ── 모달 닫기
+function updateScrollNotes(){
+  document.querySelectorAll('.tbl-wrap').forEach(w => {
+    const note = w.previousElementSibling;
+    if(note && note.classList.contains('scroll-note'))
+      note.classList.toggle('on', w.scrollWidth > w.clientWidth + 4);
+  });
+}
+window.addEventListener('resize', updateScrollNotes);
+new MutationObserver(updateScrollNotes).observe(document.body, {childList:true, subtree:true});
+
+document.querySelectorAll('.modal').forEach(m => {
+  m.addEventListener('click', e => {
+    if(e.target===m || e.target.closest('[data-close]')) m.classList.remove('on');
+  });
+});
+document.addEventListener('keydown', e => {
+  if(e.key==='Escape') document.querySelectorAll('.modal.on').forEach(m=>m.classList.remove('on'));
+});
+</script>
+</body>
+</html>
