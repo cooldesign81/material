@@ -79,7 +79,8 @@ td{padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
 #catBody td:nth-child(3){white-space:normal;min-width:180px}
 tr:hover td{background:#FAFAFA}
 .right{text-align:right}
-.tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:var(--r-card);border:1px solid var(--line);background:#fff}
+.tbl-wrap{overflow:auto;max-height:calc(100vh - 110px);-webkit-overflow-scrolling:touch;border-radius:var(--r-card);border:1px solid var(--line);background:#fff}
+.tbl-wrap th{top:0;z-index:1}
 .tbl-wrap table{min-width:720px}
 .tbl-wrap.wide table{min-width:1020px}
 .tbl-wrap::-webkit-scrollbar{height:8px}
