@@ -55,7 +55,10 @@ label{display:block;font-size:12px;font-weight:600;color:var(--text-sub);margin-
 .badge-hq{background:#FBE9D4;color:#9A5A08}
 .badge-base{background:#E7ECF2;color:var(--slot-navy)}
 .badge-new{background:#F3E3F7;color:#7B2D8E}
-.badge-pool{background:#E3F2E6;color:#11722F}
+.badge-over{background:#E4EEF5;color:#1968A1}
+.opt-grp{margin-top:12px}
+.opt-grp .chips{margin-bottom:0}
+.cart-note{margin-top:6px;padding:5px 8px;font-size:12px}
 .ob-r{display:flex;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line)}
 .ob-r.done{opacity:.45}
 .ob-r .ob-n{flex:1;min-width:0}
@@ -96,7 +99,6 @@ tr:hover td{background:#FAFAFA}
 #catBody tr.sel td{background:#FFF7E8}
 #catBody tr.sel:hover td{background:#FFF3DC}
 tr.grp td{background:#EFF2F5;border-top:2px solid var(--slot-navy);padding:10px;font-size:13px}
-tr.grp-pool td{background:#E7F4EA;border-top-color:#11722F}
 tr.sub td{background:#F7F8FA;border-bottom:1px solid var(--line);padding:6px 10px;font-size:12px}
 tr.sub:hover td{background:#F7F8FA}
 tr.sub .site{font-weight:800;color:var(--slot-navy);margin-right:8px}
@@ -106,7 +108,6 @@ tr.sub .site{font-weight:800;color:var(--slot-navy);margin-right:8px}
 .vhead{background:var(--slot-navy);color:#fff;padding:8px 12px;border-radius:var(--r-card) var(--r-card) 0 0;font-size:14px}
 .vhead .brk{color:#C3D0DD}
 .vgrp .grid{border:1px solid var(--line);border-top:0;border-radius:0 0 var(--r-card) var(--r-card);padding:12px;background:#fff}
-tr.grp-pool:hover td{background:#E7F4EA}
 tr.grp:hover td{background:#EFF2F5}
 
 /* ── 경고 스트라이프 ── */
@@ -199,17 +200,21 @@ tr.grp:hover td{background:#EFF2F5}
       <div style="flex:0 0 160px"><label for="fBranch">요청하는 원</label>
         <select id="fBranch"><option value="평촌">평촌원</option><option value="반포">반포원</option><option value="대치">대치원</option></select>
       </div>
-      <div style="flex:1;min-width:180px"><label for="fWho">요청자 이름</label><input id="fWho" placeholder="예: 김선생"></div>
     </div>
   </div>
 
   <section id="tab-req">
     <div class="sect">
       <h2>온라인 주문요청</h2>
-      <p class="sub">쇼핑몰에서 사는 재료입니다. 필요한 걸 골라 수량을 넣으세요.</p>
+      <p class="sub">쇼핑몰(국내·해외)에서 사는 재료입니다. 필요한 걸 담아 요청하세요. 수량과 규격은 구매 담당자가 정하니 몰라도 괜찮고, 색상·굵기처럼 꼭 알려야 하는 것만 고르면 됩니다.</p>
       <div class="filters">
         <input id="q" placeholder="품목 검색 (예: 도화지, 레진, 테이프)">
         <button class="btn btn-sec" id="customBtn">목록에 없는 재료 요청</button>
+      </div>
+      <div class="chips" id="chanChips">
+        <button class="chip" data-c="" aria-pressed="true">전체</button>
+        <button class="chip" data-c="온라인" aria-pressed="false">온라인</button>
+        <button class="chip" data-c="해외온라인" aria-pressed="false">해외온라인</button>
       </div>
       <div class="chips" id="cats"></div>
       <div class="grid" id="items"></div>
@@ -221,6 +226,7 @@ tr.grp:hover td{background:#EFF2F5}
     <div class="sect">
       <h2>거래처 주문요청</h2>
       <p class="sub">본사와 오프라인 거래처에서 받는 재료입니다. 거래처별로 묶여 있고, 주문은 담당자가 거래처에 직접 넣습니다.</p>
+      <p class="sub" style="color:var(--brand-orange);font-weight:600">거래처·본사 주문은 준비 중입니다. 요청은 저장되지만 아직 모아보기에는 나오지 않습니다.</p>
       <div class="filters">
         <input id="qOff" placeholder="품목 검색">
       </div>
@@ -232,12 +238,12 @@ tr.grp:hover td{background:#EFF2F5}
   <section id="tab-agg" hidden>
     <div class="sect">
       <h2>요청 모아보기</h2>
-      <p class="sub">원별로, 그 안에서 다시 구매처별로 묶었습니다. 구매처마다 주문 준비를 누르면 그 쇼핑몰 것만 한꺼번에 열립니다. 품목별 보기로 바꾸면 같은 재료를 원마다 얼마에 샀는지 비교할 수 있습니다.</p>
+      <p class="sub">온라인·해외온라인 요청만 모았습니다. 원별로, 그 안에서 다시 구매처별로 묶었습니다. 요청에는 수량·규격이 없을 수 있으니 구매 담당자가 <b>수량</b>과 <b>구매 규격</b>을 직접 넣으세요. 구매처마다 주문 준비를 누르면 그 쇼핑몰 것만 한꺼번에 열립니다. 품목별 보기로 바꾸면 같은 재료를 원마다 얼마에 샀는지 비교할 수 있습니다.</p>
       <div class="sum" id="sum"></div>
       <div class="filters">
         <select id="aView" style="width:auto"><option value="branch">원별 보기</option><option value="item">품목별 보기</option></select>
         <select id="aSt" style="width:auto"><option value="요청">요청 대기</option><option value="장바구니">장바구니 담음</option><option value="주문완료">주문 완료</option><option value="">전체</option></select>
-        <select id="aCh" style="width:auto"><option value="">구매경로 전체</option><option value="on">온라인만</option><option value="off">오프라인 거래처만</option></select>
+        <select id="aCh" style="width:auto"><option value="">온라인·해외온라인 전체</option><option value="온라인">온라인만</option><option value="해외온라인">해외온라인만</option></select>
         <button class="btn btn-sec" id="printBtn">인쇄</button>
       </div>
       <p class="scroll-note" id="aggNote">표를 옆으로 밀면 나머지 열이 보입니다.</p>
@@ -249,7 +255,7 @@ tr.grp:hover td{background:#EFF2F5}
   <section id="tab-cat" hidden>
     <div class="sect">
       <h2>품목관리</h2>
-      <p class="sub">마스터 품목 <span class="num" id="catN">0</span>건 중 <span class="num" id="catShown">0</span>건 표시. 규격이 비어 있으면 요청할 때 입력을 받습니다. <b>구매처</b>를 지정하면 모아보기에서 구매처별로 묶여 한꺼번에 주문할 수 있습니다. <b>본사월</b>은 본사에서 받아야 하는 달입니다. 해마다 바뀌니 연초에 일괄로 다시 지정하세요. <b>분배</b>는 부피가 작아 들고 옮길 수 있는 소수 품목에만 켜세요 — 기본은 원별 배송입니다. <b>상품주소</b>는 기본이 네이버쇼핑 검색입니다. 늘 같은 상품을 산다면 등록해서 확정해 두세요.</p>
+      <p class="sub">마스터 품목 <span class="num" id="catN">0</span>건 중 <span class="num" id="catShown">0</span>건 표시. <b>구매경로</b>는 온라인·해외온라인·거래처·본사 중 하나이고, 모아보기에는 온라인과 해외온라인만 나옵니다. <b>규격</b>은 참고용 이전 구매 기록이며, 요청할 때 입력하지 않아도 됩니다. 색상·굵기처럼 요청자가 골라야 하는 항목은 <b>수정</b>의 세부 선택에서 정합니다. <b>구매처</b>를 지정하면 모아보기에서 구매처별로 묶여 한꺼번에 주문할 수 있습니다. <b>본사월</b>은 본사에서 받아야 하는 달입니다. 해마다 바뀌니 연초에 일괄로 다시 지정하세요. <b>상품주소</b>는 기본이 네이버쇼핑 검색입니다. 늘 같은 상품을 산다면 등록해서 확정해 두세요.</p>
       <div class="filters">
         <input id="cq" placeholder="품목 검색">
         <button class="btn btn-primary" id="addBtn">새 품목 추가</button>
@@ -257,10 +263,10 @@ tr.grp:hover td{background:#EFF2F5}
       <div class="chips" id="cqFilters">
         <button class="chip" data-f="" aria-pressed="true">전체</button>
         <button class="chip" data-f="nosite" aria-pressed="false">구매처 미지정</button>
-        <button class="chip" data-f="nospec" aria-pressed="false">규격 없음</button>
         <button class="chip" data-f="nourl" aria-pressed="false">상품주소 미등록</button>
         <button class="chip" data-f="hq" aria-pressed="false">본사 지정</button>
-        <button class="chip" data-f="pool" aria-pressed="false">분배 켬</button>
+        <button class="chip" data-f="over" aria-pressed="false">해외온라인</button>
+        <button class="chip" data-f="off" aria-pressed="false">거래처·본사</button>
       </div>
       <div class="bulk" id="bulkBar">
         <b><span class="num" id="bulkN">0</span>개 선택</b>
@@ -270,15 +276,15 @@ tr.grp:hover td{background:#EFF2F5}
         <input id="bulkHq" placeholder="본사월 (예: 5월)" style="width:132px;padding:5px 8px;font-size:13px">
         <button class="btn btn-primary btn-sm" id="bulkHqGo">본사월 적용</button>
         <span class="sep"></span>
-        <button class="btn btn-sec btn-sm" id="bulkPoolOn">분배 켜기</button>
-        <button class="btn btn-sec btn-sm" id="bulkPoolOff">분배 끄기</button>
+        <select id="bulkChan" style="width:auto"></select>
+        <button class="btn btn-primary btn-sm" id="bulkChanGo">구매경로 적용</button>
         <button class="btn btn-sec btn-sm" id="bulkClear" style="margin-left:auto">선택 해제</button>
       </div>
       <p class="scroll-note" id="catNote">표를 옆으로 밀면 나머지 열이 보입니다.</p>
       <div class="tbl-wrap wide"><table><thead><tr>
         <th style="width:36px"><input type="checkbox" id="catAll" aria-label="전체 선택" style="width:auto;margin:0"></th>
-        <th style="width:12%">분류</th><th style="width:20%">품목명</th><th style="width:24%">규격</th>
-        <th style="width:15%">구매처</th><th style="width:11%">기준단가</th><th style="width:8%">본사월</th><th style="width:8%">분배</th><th style="width:9%">상품주소</th><th style="width:10%"></th>
+        <th style="width:11%">분류</th><th style="width:21%">품목명</th><th style="width:22%">참고 규격</th>
+        <th style="width:15%">구매처</th><th style="width:11%">기준단가</th><th style="width:8%">본사월</th><th style="width:9%">구매경로</th><th style="width:9%">상품주소</th><th style="width:10%"></th>
       </tr></thead><tbody id="catBody"></tbody></table></div>
     </div>
   </section>
@@ -286,16 +292,31 @@ tr.grp:hover td{background:#EFF2F5}
 
 <div class="cart"><button class="btn btn-primary" id="cartBtn">요청 담기<span class="n num" id="cartN">0</span></button></div>
 
-<!-- 규격 입력 모달 -->
+<!-- 세부 선택 모달 -->
 <div class="modal" id="specModal"><div class="modal-box">
-  <div class="modal-head"><span>규격을 입력해 주세요</span><button data-close>&times;</button></div>
+  <div class="modal-head"><span>세부 선택</span><button data-close>&times;</button></div>
   <div class="modal-body">
-    <p class="sub" style="margin-bottom:12px">이 품목은 등록된 규격이 없습니다. 담당자가 검색해서 살 수 있도록 크기·색상·용량을 적어 주세요.</p>
-    <h3 id="smName"></h3>
-    <label for="smSpec">규격</label>
-    <input id="smSpec" placeholder="예: 8절 170g 125매 / 흰색">
+    <h3 id="smName" style="margin-bottom:0"></h3>
+    <p class="sub" style="margin:4px 0 0">필요한 것만 고르세요. 고르지 않으면 구매 담당자가 정합니다.</p>
+    <div id="smBody"></div>
   </div>
   <div class="modal-foot"><button class="btn btn-sec" data-close>취소</button><button class="btn btn-primary" id="smOk">담기</button></div>
+</div></div>
+
+<!-- 품목 수정 -->
+<div class="modal" id="editModal"><div class="modal-box">
+  <div class="modal-head"><span>품목 수정</span><button data-close>&times;</button></div>
+  <div class="modal-body">
+    <label for="eName">품목명</label><input id="eName" placeholder="어떤 물건인지 바로 알 수 있는 이름">
+    <label for="eDesc" style="margin-top:12px">설명 (선택)</label>
+    <input id="eDesc" placeholder="예: 공예용 알루미늄 판재 (얇은 금속판)">
+    <label for="eSpec" style="margin-top:12px">참고 규격 (선택)</label>
+    <textarea id="eSpec" rows="3" placeholder="이전에 산 규격 기록. 요청자에게는 참고로만 보입니다"></textarea>
+    <label for="eOpts" style="margin-top:12px">세부 선택 항목 (선택)</label>
+    <textarea id="eOpts" rows="3" placeholder="한 줄에 하나씩&#10;색상: 빨강, 파랑, 노랑&#10;크기:"></textarea>
+    <p class="sub" style="margin:4px 0 0">'항목: 선택지, 선택지' 형식입니다. 콜론 뒤를 비우면 요청자가 직접 적는 칸이 됩니다. 전부 지우면 세부 선택이 없어집니다.</p>
+  </div>
+  <div class="modal-foot"><button class="btn btn-sec" data-close>취소</button><button class="btn btn-primary" id="eOk">저장</button></div>
 </div></div>
 
 <!-- 목록에 없는 재료 요청 -->
@@ -305,10 +326,10 @@ tr.grp:hover td{background:#EFF2F5}
     <label for="xName">재료 이름</label>
     <input id="xName" placeholder="예: 우드스틱" autocomplete="off">
     <div id="xHints"></div>
-    <label for="xSpec" style="margin-top:12px">규격 <span style="color:var(--brand-orange)">필수</span></label>
+    <label for="xSpec" style="margin-top:12px">규격 (선택)</label>
     <input id="xSpec" placeholder="예: 공예용 114mm 1000개 / 흰색">
     <div class="row" style="margin-top:12px">
-      <div style="flex:0 0 112px"><label for="xQty">수량</label><input id="xQty" type="number" min="1" step="1" class="num"></div>
+      <div style="flex:0 0 112px"><label for="xQty">수량 (선택)</label><input id="xQty" type="number" min="1" step="1" class="num"></div>
       <div style="flex:1;min-width:180px"><label for="xUrl">참고 링크 (선택)</label><input id="xUrl" placeholder="상품 주소를 알면 붙여넣기"></div>
     </div>
     <label for="xWhy" style="margin-top:12px">어디에 쓰나요 (선택)</label>
@@ -333,7 +354,7 @@ tr.grp:hover td{background:#EFF2F5}
   <div class="modal-head"><span>새 품목 추가</span><button data-close>&times;</button></div>
   <div class="modal-body">
     <label for="nName">품목명</label><input id="nName" placeholder="예: 우드스틱">
-    <label for="nSpec" style="margin-top:12px">규격 <span style="color:var(--brand-orange)">필수</span></label>
+    <label for="nSpec" style="margin-top:12px">참고 규격 (선택)</label>
     <input id="nSpec" placeholder="예: 공예용 114mm 1000개">
     <label for="nCat" style="margin-top:12px">분류</label><select id="nCat"></select>
     <label for="nVendor" style="margin-top:12px">구매처 (선택)</label><input id="nVendor" placeholder="예: 네이버">
@@ -403,7 +424,25 @@ const esc = s => String(s??'').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;',
 const won = n => (n==null||n==='')?'':Number(n).toLocaleString('ko-KR');
 
 const OFFLINE_SITES = ['본사','대성 우드락','은성지관','클레이 거래처','오프라인'];
-const isOff = m => OFFLINE_SITES.includes(m.site || '미지정');
+const CHANNELS = ['온라인','해외온라인','거래처','본사'];
+const OVERSEAS_SITES = ['알리익스프레스','테무'];
+// 구매경로: 품목관리에서 지정한 값(chan)이 우선, 없으면 구매처로 추정
+const chanOf = m => m.chan || (m.site==='본사' ? '본사'
+  : OVERSEAS_SITES.includes(m.site) ? '해외온라인'
+  : OFFLINE_SITES.includes(m.site||'미지정') ? '거래처' : '온라인');
+const isOff = m => ['거래처','본사'].includes(chanOf(m));
+
+// 세부 선택: 품목에 opts가 저장돼 있으면 그것을, 없으면 이름으로 추정한 기본값을 쓴다.
+// choices가 비어 있으면 요청자가 직접 적는 칸이 된다.
+const COLORS = ['빨강','주황','노랑','초록','파랑','남색','보라','분홍','갈색','검정','흰색','금색','은색'];
+const OPT_PRESETS = [
+  {re:/물감|매직|마카|네임펜|붓펜|락카|색연필|셀로판|가죽끈|칼라 테이프|마스킹 테이프|컬러/, opts:[{label:'색상', choices:COLORS}]},
+  {re:/톰보우|(^|[^색])연필/, opts:[{label:'농도', choices:['HB','B','2B','3B','4B','6B']}]},
+  {re:/박스/, opts:[{label:'크기', choices:[]}]},
+  {re:/우드락|폼보드|포맥스|에바폼|아크릴보드/, opts:[{label:'두께', choices:['1T','2T','3T','5T','10T']}]},
+  {re:/도화지/, opts:[{label:'크기', choices:['4절','8절','A3','A4']}]},
+];
+const optsOf = m => Array.isArray(m.opts) ? m.opts : OPT_PRESETS.filter(p=>p.re.test(m.name||'')).flatMap(p=>p.opts);
 
 
 let me = null, master = [], reqs = [], cart = [];
@@ -471,13 +510,18 @@ $('#q').oninput = renderItems;
 // ── 품목 카드
 
 function cardHtml(m){
-  return `<div class="item" data-id="${esc(m.id)}">
+  const op = optsOf(m);
+  return `
+    <div class="item" data-id="${m.id}">
       <h4>${esc(m.name)}</h4>
+      ${m.desc?`<div class="sub" style="margin:0 0 4px">${esc(m.desc)}</div>`:''}
       <div class="tags">
         <span class="badge">${esc(m.cat)}</span>
+        ${chanOf(m)==='해외온라인'?'<span class="badge badge-over">해외</span>':''}
         ${m.hq?`<span class="badge badge-hq">본사 ${esc(m.hq)}</span>`:''}
       </div>
-      <div class="meta">${esc(m.spec||'규격 미등록 — 담을 때 입력합니다')}</div>
+      ${m.spec?`<div class="meta">이전 구매: ${esc(m.spec)}</div>`:''}
+      ${op.length?`<div class="brk">고를 항목: ${op.map(o=>esc(o.label)).join(', ')}</div>`:''}
       <div class="act">
         <input type="number" min="1" step="1" placeholder="수량" class="num" aria-label="${esc(m.name)} 수량">
         <button class="btn btn-sec btn-sm" style="flex:1">담기</button>
@@ -485,13 +529,18 @@ function cardHtml(m){
     </div>`;
 }
 
+// 거래처·본사 탭: 본사 → 거래처별 → 그 밖
+const offGroup = m => chanOf(m)==='본사' ? '본사'
+  : (OFFLINE_SITES.includes(m.site) && m.site!=='본사' ? m.site : '거래처 일반');
+const OFF_ORDER = ['본사', ...OFFLINE_SITES.filter(v=>v!=='본사'), '거래처 일반'];
+
 function renderOff(){
   const kw = $('#qOff').value.trim().toLowerCase();
   const list = master.filter(m => isOff(m) &&
     (!kw || (m.name+' '+(m.spec||'')).toLowerCase().includes(kw)));
   const g = {};
-  list.forEach(m => (g[m.site] = g[m.site] || []).push(m));
-  const order = OFFLINE_SITES.filter(v => g[v]);
+  list.forEach(m => { const k = offGroup(m); (g[k] = g[k] || []).push(m); });
+  const order = OFF_ORDER.filter(v => g[v]);
   $('#offBody').innerHTML = order.length ? order.map(v => `
     <div class="vgrp">
       <div class="vhead"><b>${esc(v)}</b><span class="brk"> ${g[v].length}품목</span></div>
@@ -500,24 +549,21 @@ function renderOff(){
     : '<div class="empty">조건에 맞는 거래처 품목이 없습니다.</div>';
 }
 
+let activeChan = '';
+$('#chanChips').onclick = e => {
+  const b = e.target.closest('.chip'); if(!b) return;
+  activeChan = b.dataset.c;
+  $('#chanChips').querySelectorAll('.chip').forEach(x=>x.setAttribute('aria-pressed', x===b));
+  renderItems();
+};
+
 function renderItems(){
   const kw = $('#q').value.trim().toLowerCase();
   const list = master.filter(m => !isOff(m) &&
+    (!activeChan || chanOf(m)===activeChan) &&
     (!activeCat || m.cat===activeCat) &&
-    (!kw || (m.name+' '+(m.spec||'')).toLowerCase().includes(kw)));
-  $('#items').innerHTML = list.length ? list.map(m => `
-    <div class="item" data-id="${m.id}">
-      <h4>${esc(m.name)}</h4>
-      <div class="tags">
-        <span class="badge">${esc(m.cat)}</span>
-        ${m.hq?`<span class="badge badge-hq">본사 ${esc(m.hq)}</span>`:''}
-      </div>
-      <div class="meta">${esc(m.spec||'규격 미등록 — 담을 때 입력합니다')}</div>
-      <div class="act">
-        <input type="number" min="1" step="1" placeholder="수량" class="num" aria-label="${esc(m.name)} 수량">
-        <button class="btn btn-sec btn-sm" style="flex:1">담기</button>
-      </div>
-    </div>`).join('')
+    (!kw || (m.name+' '+(m.desc||'')+' '+(m.spec||'')).toLowerCase().includes(kw)));
+  $('#items').innerHTML = list.length ? list.map(cardHtml).join('')
     : '<div class="empty" style="grid-column:1/-1">찾는 재료가 없나요? 검색어를 줄여 보시고, 그래도 없으면 위 <b>목록에 없는 재료 요청</b>으로 알려 주세요.</div>';
 }
 
@@ -525,37 +571,51 @@ const pickHandler = e => {
   const btn = e.target.closest('button'); if(!btn) return;
   const el = e.target.closest('.item');
   const m = master.find(x=>x.id===el.dataset.id);
-  const qty = parseInt(el.querySelector('input').value,10);
-  if(!qty || qty<1){ el.querySelector('input').focus(); return; }
-  if(!m.spec){ openSpec(m, qty); return; }
-  addCart(m, qty, m.spec);
-  el.querySelector('input').value='';
+  const inp = el.querySelector('input');
+  const qty = parseInt(inp.value,10) || null;
+  inp.value = '';
+  if(optsOf(m).length){ openOpts(m, qty); return; }
+  addCart(m, qty, '');
 };
 $('#items').onclick = pickHandler;
 $('#offBody').onclick = pickHandler;
 $('#qOff').oninput = () => renderOff();
 
-// ── 규격 필수 입력
+// ── 세부 선택 (색상·굵기 등, 품목에 항목이 있을 때만)
 let pending = null;
-function openSpec(m, qty){
+function openOpts(m, qty){
   pending = {m, qty};
   $('#smName').textContent = m.name;
-  $('#smSpec').value = '';
+  $('#smBody').innerHTML = optsOf(m).map((o,i) => (o.choices||[]).length
+    ? `<div class="opt-grp" data-i="${i}"><label>${esc(o.label)} <span class="brk">(여러 개 선택 가능)</span></label>
+        <div class="chips">${o.choices.map(c=>`<button type="button" class="chip" data-c="${esc(c)}" aria-pressed="false">${esc(c)}</button>`).join('')}</div></div>`
+    : `<div class="opt-grp" data-i="${i}"><label>${esc(o.label)}</label><input data-text placeholder="예: 직접 적어 주세요"></div>`).join('');
   $('#specModal').classList.add('on');
-  $('#smSpec').focus();
 }
+$('#smBody').onclick = e => {
+  const b = e.target.closest('.chip'); if(!b) return;
+  b.setAttribute('aria-pressed', b.getAttribute('aria-pressed')!=='true');
+};
 $('#smOk').onclick = () => {
-  const v = $('#smSpec').value.trim();
-  if(!v){ $('#smSpec').focus(); return; }
-  addCart(pending.m, pending.qty, v);
+  const parts = [];
+  $('#smBody').querySelectorAll('.opt-grp').forEach(g => {
+    const o = optsOf(pending.m)[+g.dataset.i];
+    const v = g.querySelector('[data-text]')
+      ? g.querySelector('[data-text]').value.trim()
+      : [...g.querySelectorAll('.chip[aria-pressed="true"]')].map(c=>c.dataset.c).join(', ');
+    if(v) parts.push(o.label+': '+v);
+  });
+  addCart(pending.m, pending.qty, parts.join(' / '));
   $('#specModal').classList.remove('on');
 };
 
+const cartCount = () => { $('#cartN').textContent = cart.length; };
 function addCart(m, qty, spec){
   const hit = cart.find(c=>c.itemId===m.id && c.spec===spec);
-  if(hit) hit.qty += qty;
-  else cart.push({itemId:m.id, name:m.name, cat:m.cat, spec, ch:m.ch, qty});
-  $('#cartN').textContent = cart.reduce((s,c)=>s+c.qty,0);
+  if(hit){ if(qty!=null) hit.qty = (hit.qty||0) + qty; }
+  else cart.push({itemId:m.id, name:m.name, cat:m.cat, spec, ch:isOff(m)?'off':'on', chan:chanOf(m), qty, note:''});
+  cartCount();
+  toast(m.name+' 담았습니다');
 }
 
 // ── 목록에 없는 재료 요청
@@ -590,49 +650,51 @@ $('#xName').oninput = renderHints;
 $('#xHints').onclick = e => {
   const b = e.target.closest('[data-pick]'); if(!b) return;
   const m = master.find(x => x.id === b.dataset.pick);
-  const qty = parseInt($('#xQty').value,10) || 1;
-  if(!m.spec){ $('#customModal').classList.remove('on'); openSpec(m, qty); return; }
-  addCart(m, qty, m.spec);
+  const qty = parseInt($('#xQty').value,10) || null;
   $('#customModal').classList.remove('on');
+  if(optsOf(m).length){ openOpts(m, qty); return; }
+  addCart(m, qty, '');
 };
 $('#xOk').onclick = () => {
   const name = $('#xName').value.trim(), spec = $('#xSpec').value.trim();
-  const qty = parseInt($('#xQty').value,10);
   if(!name){ $('#xName').focus(); return; }
-  if(!spec){ $('#xSpec').focus(); return; }
-  if(!qty || qty < 1){ $('#xQty').focus(); return; }
-  cart.push({itemId:'X:'+name, name, cat:'미분류', spec, ch:'on', qty,
+  const qty = parseInt($('#xQty').value,10) || null;
+  cart.push({itemId:'X:'+name, name, cat:'미분류', spec, ch:'on', chan:'온라인', qty, note:'',
              custom:true, refUrl:$('#xUrl').value.trim(), why:$('#xWhy').value.trim()});
-  $('#cartN').textContent = cart.reduce((s,c)=>s+c.qty,0);
+  cartCount();
   $('#customModal').classList.remove('on');
 };
 
 // ── 장바구니
+function renderCartList(){
+  $('#cartList').innerHTML = cart.map((c,i)=>`
+    <div style="padding:8px 0;border-bottom:1px solid var(--line)">
+      <div style="display:flex;gap:8px;align-items:center">
+        <div style="flex:1"><b>${esc(c.name)}</b>${c.spec?`<div class="sub" style="margin:0">${esc(c.spec)}</div>`:''}</div>
+        ${c.qty!=null?`<span class="num" style="font-weight:700">${c.qty}</span>`:'<span class="brk">수량 미정</span>'}
+        <button class="btn btn-sec btn-sm" data-rm="${i}">빼기</button>
+      </div>
+      <input class="cart-note" data-note="${i}" placeholder="이 품목 메모 (선택)" value="${esc(c.note||'')}">
+    </div>`).join('');
+}
 $('#cartBtn').onclick = () => {
   if(!cart.length) return;
-  $('#cartList').innerHTML = cart.map((c,i)=>`
-    <div style="display:flex;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line)">
-      <div style="flex:1"><b>${esc(c.name)}</b><div class="sub" style="margin:0">${esc(c.spec)}</div></div>
-      <span class="num" style="font-weight:700">${c.qty}</span>
-      <button class="btn btn-sec btn-sm" data-rm="${i}">빼기</button>
-    </div>`).join('');
+  renderCartList();
   $('#cartModal').classList.add('on');
+};
+$('#cartList').oninput = e => {
+  const n = e.target.closest('[data-note]'); if(n) cart[+n.dataset.note].note = n.value;
 };
 $('#cartList').onclick = e => {
   const b = e.target.closest('[data-rm]'); if(!b) return;
   cart.splice(+b.dataset.rm,1);
-  $('#cartN').textContent = cart.reduce((s,c)=>s+c.qty,0);
-  cart.length ? $('#cartBtn').click() : $('#cartModal').classList.remove('on');
+  cartCount();
+  if(cart.length) renderCartList(); else $('#cartModal').classList.remove('on');
 };
 
 $('#submitBtn').onclick = async () => {
-  const branch = $('#fBranch').value, who = $('#fWho').value.trim();
   if(!me){ alert('로그인이 필요합니다. 오른쪽 위 로그인 버튼을 눌러 주세요.'); return; }
-  if(!who){
-    $('#cartModal').classList.remove('on');
-    alert('요청자 이름을 입력해 주세요. 화면 위쪽 \'요청자 이름\' 칸에 적고 다시 요청 등록을 눌러 주세요.');
-    $('#fWho').focus(); return;
-  }
+  const branch = $('#fBranch').value, who = me.displayName || me.email;
   const memo = $('#cMemo').value.trim();
   $('#submitBtn').disabled = true;
   try{
@@ -646,7 +708,7 @@ $('#submitBtn').onclick = async () => {
     $('#submitBtn').disabled = false;
     return;
   }
-  cart = []; $('#cartN').textContent = '0'; $('#cMemo').value='';
+  cart = []; cartCount(); $('#cMemo').value='';
   $('#cartModal').classList.remove('on'); $('#submitBtn').disabled = false;
   $('#aSt').value = '요청';
   document.querySelector('[data-tab="agg"]').click();
@@ -661,11 +723,22 @@ $('#printBtn').onclick = () => window.print();
 
 const BRANCHES = ['평촌','반포','대치'];
 
+// 요청의 구매경로는 지금의 품목 정보를 따른다(품목관리에서 바꾸면 바로 반영)
+const reqChan = r => {
+  const m = master.find(x=>x.id===r.itemId);
+  return m ? chanOf(m) : (r.chan || (r.ch==='off' ? '거래처' : '온라인'));
+};
+// 모아보기에는 온라인·해외온라인만 모은다. 거래처·본사는 따로 정리 예정.
 function groupRows(){
   const st = $('#aSt').value, ch = $('#aCh').value;
-  return reqs.filter(r => (!st || r.status===st) && (!ch || r.ch===ch));
+  return reqs.filter(r => {
+    const c = reqChan(r);
+    return (c==='온라인' || c==='해외온라인') && (!st || r.status===st) && (!ch || c===ch);
+  });
 }
 function meta(name){ return master.find(x=>x.name===name) || {}; }
+// 품목 이름을 바꿔도 예전 요청이 이어지도록 id로 먼저 찾는다
+const metaV = v => master.find(x=>x.id===v.itemId) || meta(v.name);
 
 // ── 구매처: 검색 주소 틀. 바뀌면 이 줄만 고치면 된다.
 const SITE_SEARCH = {
@@ -679,15 +752,14 @@ const SITE_SEARCH = {
 };
 const SITE_ORDER = ['네이버','쿠팡','11번가','G마켓','옥션','알리익스프레스','테무','핸즈코리아','기타','미지정','본사','대성 우드락','은성지관','클레이 거래처','오프라인'];
 
-
-const siteOf = name => (meta(name).site) || '미지정';
+const siteOf = v => metaV(v).site || '미지정';
 function searchUrl(m){
   const base = SITE_SEARCH[m.site] || SITE_SEARCH['네이버'];
   const q = (m.surl||'').split('query=')[1] || encodeURIComponent(m.name||'');
   return base + q;
 }
-function linkOf(name){
-  const m = meta(name);
+function linkOf(v){
+  const m = {name:v.name, ...metaV(v)};
   if(m.url) return {u:m.url, kind:'확정'};
   if(OFFLINE_SITES.includes(m.site)) return {u:'', kind:'오프라인'};
   return {u:searchUrl(m), kind:'검색'};
@@ -695,10 +767,14 @@ function linkOf(name){
 
 function stCls(s){ return s==='주문완료'?'st-done':s==='장바구니'?'st-cart':'st-req'; }
 
+// 구매 담당자가 넣은 수량이 있으면 그것, 없으면 요청 수량(둘 다 없으면 null)
+const qtyOf = v => v.buyQty!=null ? v.buyQty : v.reqQty;
+
 function itemCell(v){
-  const m = meta(v.name);
-  return `<b>${esc(v.name)}</b>${v.ch==='off'?' <span class="badge badge-off">오프라인</span>':''}${v.pool?' <span class="badge badge-pool">분배</span>':''}
-    <div class="sub" style="margin:0">${esc(v.spec)}</div>
+  const m = metaV(v);
+  return `<b>${esc(v.name)}</b>${reqChan({itemId:v.itemId, chan:v.chan, ch:v.ch})==='해외온라인'?' <span class="badge badge-over">해외</span>':''}
+    ${v.spec?`<div class="sub" style="margin:0">요청: ${esc(v.spec)}</div>`:''}
+    ${v.notes.map(n=>`<div class="brk">메모: ${esc(n)}</div>`).join('')}
     ${m.vendor?`<div class="brk">${esc(m.vendor)}</div>`:''}
     ${m.url?`<div><a class="brk" href="${esc(m.url)}" target="_blank" rel="noopener">상품 페이지</a></div>`:''}
     ${v.custom?`<div style="margin-top:6px">
@@ -709,10 +785,13 @@ function itemCell(v){
     </div>`:''}`;
 }
 function actCells(v){
-  const m = meta(v.name);
-  return `<td class="brk">${esc(m.base||'—')}</td>
+  const m = metaV(v);
+  const q = qtyOf(v);
+  return `<td class="right"><input type="number" min="0" class="num" data-qty style="width:72px;padding:4px 6px" value="${q??''}" placeholder="수량"></td>
+    <td><input data-bspec style="width:150px;padding:4px 6px" value="${esc(v.buySpec)}" placeholder="규격"></td>
+    <td class="brk">${esc(m.base||'—')}</td>
     <td class="right"><input type="number" class="num" data-unit style="width:84px;padding:4px 6px" value="${v.unit??''}" placeholder="—"></td>
-    <td class="right num">${v.unit?won(v.unit*v.qty):'—'}</td>
+    <td class="right num">${v.unit&&q!=null?won(v.unit*q):'—'}</td>
     <td><span class="st ${stCls(v.status)}">${esc(v.status)}</span></td>
     <td><select data-next style="padding:4px 6px;font-size:12px">
       <option value="">이동</option><option value="요청">요청</option>
@@ -721,56 +800,59 @@ function actCells(v){
 }
 
 function renderAgg(){
+  // 수량·규격을 입력하다가 칸을 옮기는 중에는 다시 그리지 않는다(입력 중이던 칸의 포커스가 사라짐)
+  const ae = document.activeElement;
+  if(ae && ae.tagName==='INPUT' && $('#aggBody').contains(ae)) return;
+
   const rows = groupRows();
   const byBranch = $('#aView').value !== 'item';
   const g = {};
   rows.forEach(r => {
-    const pool = !!(meta(r.name).pool);
-    const k = (byBranch && !pool ? r.branch+'|' : '') + r.itemId + '|' + r.spec;
-    g[k] = g[k] || {branch:r.branch, pool, name:r.name, spec:r.spec, ch:r.ch, br:{}, qty:0, ids:[],
-                    unit:r.unitPrice, status:r.status, custom:!!r.custom, refUrl:r.refUrl||'', why:r.why||''};
-    g[k].br[r.branch] = (g[k].br[r.branch]||0) + r.qty;
-    g[k].qty += r.qty; g[k].ids.push(r.id);
-    if(r.unitPrice!=null) g[k].unit = r.unitPrice;
+    const k = (byBranch ? r.branch+'|' : '') + r.itemId + '|' + (r.spec||'');
+    const v = g[k] = g[k] || {branch:r.branch, itemId:r.itemId, name:r.name, spec:r.spec||'', ch:r.ch, chan:r.chan,
+      br:{}, reqQty:null, buyQty:null, buySpec:'', ids:[], unit:r.unitPrice, status:r.status,
+      custom:!!r.custom, refUrl:r.refUrl||'', why:r.why||'', notes:[]};
+    v.br[r.branch] = (v.br[r.branch]||0) + (r.qty||0);
+    if(r.qty!=null) v.reqQty = (v.reqQty||0) + r.qty;
+    if(r.buyQty!=null) v.buyQty = r.buyQty;
+    if(r.buySpec) v.buySpec = r.buySpec;
+    [r.note, r.memo].forEach(n => { if(n && !v.notes.includes(n)) v.notes.push(n); });
+    v.ids.push(r.id);
+    if(r.unitPrice!=null) v.unit = r.unitPrice;
   });
-  aggArr = Object.entries(g).sort((a,b)=>b[1].qty-a[1].qty);
+  aggArr = Object.entries(g).sort((a,b)=>a[1].name.localeCompare(b[1].name,'ko'));
   aggArr.forEach(([,v],i)=> v.gi = i);
 
-  const amt = v => v.unit ? v.unit*v.qty : 0;
+  const amt = v => (v.unit && qtyOf(v)!=null) ? v.unit*qtyOf(v) : 0;
   const total = aggArr.reduce((s,[,v])=> s+amt(v), 0);
+  const brTxt = v => Object.entries(v.br).map(([b,q])=> q ? `${esc(b)} <b class="num">${q}</b>` : esc(b)).join(' · ');
 
   if(byBranch){
-    const pooled = aggArr.filter(([,v])=> v.pool);
-    const local  = aggArr.filter(([,v])=> !v.pool);
     const per = {};
-    BRANCHES.forEach(b => per[b] = {n:0, qty:0, amt:0});
-    local.forEach(([,v])=>{ const p = per[v.branch] || (per[v.branch]={n:0,qty:0,amt:0}); p.n++; p.qty+=v.qty; p.amt+=amt(v); });
-    const poolAmt = pooled.reduce((s,[,v])=>s+amt(v),0);
+    BRANCHES.forEach(b => per[b] = {n:0, amt:0});
+    aggArr.forEach(([,v])=>{ const p = per[v.branch] || (per[v.branch]={n:0,amt:0}); p.n++; p.amt+=amt(v); });
 
     $('#sum').innerHTML =
       Object.entries(per).map(([b,p])=>`
-      <div class="box"><div class="k">${esc(b)}원 · ${p.n}품목</div><div class="v num">${p.amt?won(p.amt):p.qty}</div>
-      <div class="brk">${p.amt?'원':'개 (단가 미입력)'}</div></div>`).join('') +
-      (pooled.length?`<div class="box"><div class="k">합쳐 주문 · ${pooled.length}품목</div><div class="v num">${poolAmt?won(poolAmt):pooled.reduce((s,[,v])=>s+v.qty,0)}</div><div class="brk">${poolAmt?'원':'개 (단가 미입력)'}</div></div>`:'') +
+      <div class="box"><div class="k">${esc(b)}원 · ${p.n}품목</div><div class="v num">${p.amt?won(p.amt):p.n}</div>
+      <div class="brk">${p.amt?'원':'품목 (금액 미입력)'}</div></div>`).join('') +
       `<div class="box"><div class="k">전체 합계</div><div class="v num">${total?won(total):'—'}</div></div>`;
 
-    $('#aggHead').innerHTML = `<tr><th style="width:34%">품목</th><th class="right" style="width:8%">수량</th>
-      <th style="width:16%">기준단가</th><th class="right" style="width:10%">실단가</th>
-      <th class="right" style="width:11%">금액</th><th style="width:10%">상태</th><th style="width:11%"></th></tr>`;
+    $('#aggHead').innerHTML = `<tr><th style="width:30%">품목</th><th class="right" style="width:9%">수량</th>
+      <th style="width:16%">구매 규격</th><th style="width:10%">기준단가</th><th class="right" style="width:11%">실단가</th>
+      <th class="right" style="width:10%">금액</th><th style="width:7%">상태</th><th style="width:7%"></th></tr>`;
 
     const bySite = list => {
       const o = {};
-      list.forEach(e => { const st = siteOf(e[1].name); (o[st] = o[st] || []).push(e); });
+      list.forEach(e => { const st = siteOf(e[1]); (o[st] = o[st] || []).push(e); });
       return SITE_ORDER.filter(st => o[st]).map(st => [st, o[st]])
         .concat(Object.keys(o).filter(st=>!SITE_ORDER.includes(st)).map(st=>[st,o[st]]));
     };
-    const rowsOf = list => list.map(([,v])=>`<tr data-ids="${v.ids.join(',')}">
-      <td>${itemCell(v)}${v.pool?`<div class="brk">${Object.entries(v.br).map(([b,q])=>`${esc(b)} <b class="num">${q}</b>`).join(' · ')}</div>`:''}</td>
-      <td class="right num"><b>${v.qty}</b></td>${actCells(v)}</tr>`).join('');
+    const rowsOf = list => list.map(([,v])=>`<tr data-ids="${v.ids.join(',')}"><td>${itemCell(v)}</td>${actCells(v)}</tr>`).join('');
     const siteRows = (list, scope) => bySite(list).map(([st, items]) => {
-      const q = items.reduce((s,[,v])=>s+v.qty,0);
-      return `<tr class="sub"><td colspan="7"><span class="site">${esc(st)}</span>
-        <span class="brk">${items.length}품목 · ${q}개</span>
+      const q = items.reduce((s,[,v])=>s+(qtyOf(v)||0),0);
+      return `<tr class="sub"><td colspan="8"><span class="site">${esc(st)}</span>
+        <span class="brk">${items.length}품목${q?' · '+q+'개':''}</span>
         <button class="btn btn-sec btn-sm" style="float:right" data-order="${esc(scope)}|${esc(st)}">주문 준비</button></td></tr>`
         + rowsOf(items);
     }).join('');
@@ -778,42 +860,36 @@ function renderAgg(){
     let html = '';
     const order = [...BRANCHES, ...Object.keys(per).filter(b=>!BRANCHES.includes(b))];
     order.forEach(b => {
-      const list = local.filter(([,v])=>v.branch===b);
+      const list = aggArr.filter(([,v])=>v.branch===b);
       if(!list.length) return;
       const p = per[b];
-      html += `<tr class="grp"><td colspan="7"><b>${esc(b)}원</b>
-        <span class="brk"> ${p.n}품목 · ${p.qty}개${p.amt?' · '+won(p.amt)+'원':''} — 이 원으로 직접 배송</span>
+      html += `<tr class="grp"><td colspan="8"><b>${esc(b)}원</b>
+        <span class="brk"> ${p.n}품목${p.amt?' · '+won(p.amt)+'원':''} — 이 원으로 직접 배송</span>
         <button class="btn btn-sec btn-sm" style="float:right" data-order="${esc(b)}|*">전체 주문 준비</button></td></tr>`;
       html += siteRows(list, b);
     });
-    if(pooled.length){
-      html += `<tr class="grp grp-pool"><td colspan="7"><b>합쳐서 한 번에 주문</b>
-        <span class="brk"> ${pooled.length}품목 · ${pooled.reduce((s,[,v])=>s+v.qty,0)}개${poolAmt?' · '+won(poolAmt)+'원':''} — 받아서 원별로 나눠 주세요</span>
-        <button class="btn btn-sec btn-sm" style="float:right" data-order="pool|*">전체 주문 준비</button></td></tr>`;
-      html += siteRows(pooled, 'pool');
-    }
-    $('#aggBody').innerHTML = html || '<tr><td colspan="7"><div class="empty">아직 요청이 없습니다. 요청하기 탭에서 재료를 담아 보세요.</div></td></tr>';
+    $('#aggBody').innerHTML = html || '<tr><td colspan="8"><div class="empty">아직 요청이 없습니다. 요청하기 탭에서 재료를 담아 보세요.</div></td></tr>';
     return;
   }
 
   // 품목별 — 원마다 단가가 다른지 비교용
   $('#sum').innerHTML = `
     <div class="box"><div class="k">품목 수</div><div class="v num">${aggArr.length}</div></div>
-    <div class="box"><div class="k">총 수량</div><div class="v num">${aggArr.reduce((s,[,v])=>s+v.qty,0)}</div></div>
     <div class="box"><div class="k">2개 원 이상 요청</div><div class="v num">${aggArr.filter(([,v])=>Object.keys(v.br).length>1).length}</div></div>
     <div class="box"><div class="k">합계 금액</div><div class="v num">${total?won(total):'—'}</div></div>`;
 
-  $('#aggHead').innerHTML = `<tr><th style="width:28%">품목</th><th style="width:16%">원별 요청</th>
-    <th class="right" style="width:7%">합계</th><th style="width:15%">기준단가</th>
-    <th class="right" style="width:9%">실단가</th><th class="right" style="width:10%">금액</th>
-    <th style="width:8%">상태</th><th style="width:7%"></th></tr>`;
+  $('#aggHead').innerHTML = `<tr><th style="width:26%">품목</th><th style="width:13%">요청한 원</th>
+    <th class="right" style="width:8%">수량</th><th style="width:14%">구매 규격</th><th style="width:9%">기준단가</th>
+    <th class="right" style="width:10%">실단가</th><th class="right" style="width:9%">금액</th>
+    <th style="width:6%">상태</th><th style="width:5%"></th></tr>`;
 
   $('#aggBody').innerHTML = aggArr.length ? aggArr.map(([,v])=>`<tr data-ids="${v.ids.join(',')}">
-    <td>${itemCell(v)}</td>
-    <td class="brk">${Object.entries(v.br).map(([b,q])=>`${esc(b)} <b class="num">${q}</b>`).join(' · ')}</td>
-    <td class="right num"><b>${v.qty}</b></td>${actCells(v)}</tr>`).join('')
-    : '<tr><td colspan="8"><div class="empty">아직 요청이 없습니다. 요청하기 탭에서 재료를 담아 보세요.</div></td></tr>';
+    <td>${itemCell(v)}</td><td class="brk">${brTxt(v)}</td>${actCells(v)}</tr>`).join('')
+    : '<tr><td colspan="9"><div class="empty">아직 요청이 없습니다. 요청하기 탭에서 재료를 담아 보세요.</div></td></tr>';
 }
+$('#aggBody').addEventListener('focusout', () => setTimeout(() => {
+  if(!$('#aggBody').contains(document.activeElement)) renderAgg();
+}, 0));
 
 
 // ── 주문 준비: 상품 URL 일괄 열기
@@ -845,17 +921,17 @@ function openOrder(key){
   orderKey = key; orderIdx = 0;
   const [scope, site] = key.split('|');
   orderList = aggArr
-    .filter(([,v]) => scope==='pool' ? v.pool : (!v.pool && v.branch===scope))
-    .filter(([,v]) => site==='*' || siteOf(v.name)===site)
+    .filter(([,v]) => v.branch===scope)
+    .filter(([,v]) => site==='*' || siteOf(v)===site)
     .map(([,v])=>v);
-  const who = scope==='pool' ? '합쳐 주문' : scope+'원';
+  const who = scope+'원';
   $('#obTitle').textContent = who + (site==='*' ? '' : ' · ' + site) + ' — 주문 준비';
   renderOrder();
   $('#orderModal').classList.add('on');
 }
 
 function renderOrder(){
-  const link = v => linkOf(v.name);
+  const link = v => linkOf(v);
   const fixed = orderList.filter(v => link(v).kind==='확정').length;
   const off = orderList.filter(v => link(v).kind==='오프라인').length;
   $('#obHint').innerHTML = `${BATCH}개씩 새 탭으로 엽니다. 등록해 둔 상품 ${fixed}개는 그 페이지로, 나머지는 구매처 검색 결과로 열립니다.` +
@@ -867,9 +943,9 @@ function renderOrder(){
              : '<span class="badge badge-sea">검색</span>';
     return `<div class="ob-r${i<orderIdx?' done':''}">
       <div class="ob-n"><b>${esc(v.name)}</b> ${kb}
-        <div class="s">${esc(v.spec)}</div></div>
-      <div class="ob-q num">${v.qty}</div>
-      <button class="btn btn-sec btn-sm" data-ocopy="${v.qty}">수량 복사</button>
+        <div class="s">${esc(v.buySpec||v.spec)}</div></div>
+      <div class="ob-q num">${qtyOf(v)??'—'}</div>
+      ${qtyOf(v)!=null?`<button class="btn btn-sec btn-sm" data-ocopy="${qtyOf(v)}">수량 복사</button>`:''}
       ${L.u ? `<button class="btn btn-sec btn-sm" data-oone="${esc(L.u)}">열기</button>` : ''}
     </div>`;
   }).join('') || '<div class="empty">이 묶음에는 품목이 없습니다.</div>';
@@ -880,10 +956,10 @@ function renderOrder(){
 }
 
 $('#obNext').onclick = () => {
-  const withUrl = orderList.filter(v => linkOf(v.name).u);
+  const withUrl = orderList.filter(v => linkOf(v).u);
   const batch = withUrl.slice(orderIdx, orderIdx + BATCH);
   let blocked = 0;
-  batch.forEach(v => { if(!window.open(linkOf(v.name).u, '_blank', 'noopener')) blocked++; });
+  batch.forEach(v => { if(!window.open(linkOf(v).u, '_blank', 'noopener')) blocked++; });
   orderIdx += batch.length;
   renderOrder();
   if(blocked) alert('브라우저가 새 탭 열기를 막았습니다. 주소창 옆 팝업 차단을 이 사이트에 한해 허용해 주세요.');
@@ -894,8 +970,8 @@ $('#obList').onclick = e => {
 };
 $('#obCopyAll').onclick = () => {
   const [sc, si] = orderKey.split('|');
-  const head = '[' + (sc==='pool'?'합쳐 주문':sc+'원') + (si==='*'?'':' · '+si) + ']';
-  copyText([head, ...orderList.map(v => `${v.name} / ${v.spec} / ${v.qty}개`)].join('\n'));
+  const head = '[' + sc + '원' + (si==='*'?'':' · '+si) + ']';
+  copyText([head, ...orderList.map(v => [v.name, v.buySpec||v.spec, qtyOf(v)!=null?qtyOf(v)+'개':''].filter(Boolean).join(' / '))].join('\n'));
 };
 
 $('#aggBody').addEventListener('click', e => {
@@ -911,6 +987,15 @@ $('#aggBody').addEventListener('click', e => {
 
 $('#aggBody').addEventListener('change', async e => {
   const tr = e.target.closest('tr'); const ids = tr.dataset.ids.split(',');
+  if(e.target.matches('[data-qty]')){
+    const v = e.target.value===''?null:Number(e.target.value);
+    for(const id of ids) await updateDoc(doc(db,'requests',id), {buyQty:v, updatedBy:me.email});
+    return;
+  }
+  if(e.target.matches('[data-bspec]')){
+    for(const id of ids) await updateDoc(doc(db,'requests',id), {buySpec:e.target.value.trim(), updatedBy:me.email});
+    return;
+  }
   if(e.target.matches('[data-unit]')){
     const v = e.target.value===''?null:Number(e.target.value);
     for(const id of ids) await updateDoc(doc(db,'requests',id), {unitPrice:v, updatedBy:me.email});
@@ -944,11 +1029,11 @@ let picked = new Set(), catFilter = '';
 function catList(){
   const kw = $('#cq').value.trim().toLowerCase();
   return master.filter(m => {
-    if(kw && !(m.name+' '+(m.spec||'')+' '+(m.vendor||'')).toLowerCase().includes(kw)) return false;
+    if(kw && !(m.name+' '+(m.desc||'')+' '+(m.spec||'')+' '+(m.vendor||'')).toLowerCase().includes(kw)) return false;
     if(catFilter==='nosite' && (m.site||'미지정')!=='미지정') return false;
-    if(catFilter==='nospec' && m.spec) return false;
     if(catFilter==='hq' && !m.hq) return false;
-    if(catFilter==='pool' && !m.pool) return false;
+    if(catFilter==='over' && chanOf(m)!=='해외온라인') return false;
+    if(catFilter==='off' && !isOff(m)) return false;
     if(catFilter==='nourl' && m.url) return false;
     return true;
   });
@@ -992,13 +1077,13 @@ $('#bulkHqGo').onclick = async () => {
   await applyBulk(ids, m => ({...m, hq:v}));
   $('#bulkHq').value = '';
 };
-$('#bulkPoolOn').onclick  = () => bulkPool(true);
-$('#bulkPoolOff').onclick = () => bulkPool(false);
-async function bulkPool(v){
+$('#bulkChanGo').onclick = async () => {
+  const v = $('#bulkChan').value;
   const ids = [...picked];
   if(!ids.length) return;
-  await applyBulk(ids, m => ({...m, pool:v}));
-}
+  if(!confirm(`${ids.length}개 품목의 구매경로를 "${v}"(으)로 바꿉니다.`)) return;
+  await applyBulk(ids, m => ({...m, chan:v}));
+};
 
 async function applyBulk(ids, fn){
   $('#bulkBar').classList.add('busy');
@@ -1027,21 +1112,23 @@ function renderCat(){
   renderBulk();
   $('#catBody').innerHTML = list.map(m => `<tr data-id="${m.id}">
     <td>${esc(m.cat)}</td>
-    <td><b>${esc(m.name)}</b>${m.ch==='off'?' <span class="badge badge-off">오프라인</span>':''}</td>
-    <td>${m.spec ? esc(m.spec) : '<span style="color:var(--brand-orange);font-weight:600">규격 없음</span>'}</td>
+    <td><b>${esc(m.name)}</b>${m.desc?`<div class="brk">${esc(m.desc)}</div>`:''}</td>
+    <td>${m.spec ? esc(m.spec) : '<span class="brk">—</span>'}</td>
     <td><select data-site style="padding:3px 4px;font-size:12px">${SITE_ORDER.map(x=>`<option${x===(m.site||'미지정')?' selected':''}>${esc(x)}</option>`).join('')}</select>
       ${m.vendor?`<div class="brk" style="margin-top:2px">${esc(m.vendor)}</div>`:''}</td>
     <td class="brk">${esc(m.base||'—')}</td>
     <td><button class="btn btn-sec btn-sm" data-hq style="${m.hq?'background:#FBE9D4;border-color:#EBC89C;color:#9A5A08;font-weight:700':''}">${m.hq?esc(m.hq):'—'}</button></td>
-    <td><button class="btn btn-sec btn-sm" data-pool aria-pressed="${!!m.pool}" style="${m.pool?'background:#E3F2E6;border-color:#B6DCBF;color:#11722F;font-weight:700':''}">${m.pool?'분배가능':'원별'}</button></td>
+    <td><select data-chan style="padding:3px 4px;font-size:12px">${CHANNELS.map(x=>`<option${x===chanOf(m)?' selected':''}>${esc(x)}</option>`).join('')}</select></td>
     <td><button class="btn btn-sec btn-sm" data-url style="${m.url?'background:#E7ECF2;border-color:#C7D2DD;color:var(--slot-navy);font-weight:700':''}">${m.url?'확정됨':'검색'}</button></td>
-    <td><button class="btn btn-sec btn-sm" data-edit>규격 수정</button></td>
+    <td><button class="btn btn-sec btn-sm" data-edit>수정</button></td>
   </tr>`).join('');
 }
 $('#catBody').addEventListener('change', async e => {
-  if(!e.target.matches('[data-site]')) return;
+  const isSite = e.target.matches('[data-site]');
+  if(!isSite && !e.target.matches('[data-chan]')) return;
   const row = e.target.closest('tr'); const m = master.find(x=>x.id===row.dataset.id); if(!m) return;
-  await setDoc(doc(db,'materials',row.dataset.id), {...m, site:e.target.value, updatedBy:me.email});
+  await setDoc(doc(db,'materials',row.dataset.id),
+    {...m, [isSite?'site':'chan']:e.target.value, updatedBy:me.email});
 });
 
 $('#catBody').onclick = async e => {
@@ -1056,10 +1143,6 @@ $('#catBody').onclick = async e => {
     return;
   }
   const m = master.find(x=>x.id===id); if(!m) return;
-  if(e.target.matches('[data-pool]')){
-    await setDoc(doc(db,'materials',id), {...m, pool:!m.pool, updatedBy:me.email});
-    return;
-  }
   if(e.target.matches('[data-hq]')){
     const v = prompt(`${m.name}\n본사에서 받아야 하는 달 (비우면 해제)\n예: 5월  또는  3월, 9월`, m.hq||'');
     if(v===null) return;
@@ -1073,23 +1156,54 @@ $('#catBody').onclick = async e => {
     return;
   }
   if(!e.target.matches('[data-edit]')) return;
-  const v = prompt(`${m.name}\n규격을 입력하세요`, m.spec||'');
-  if(v===null) return;
-  await updateDoc(doc(db,'materials',id), {spec:v.trim(), updatedBy:me.email});
+  editId = id;
+  $('#eName').value = m.name; $('#eDesc').value = m.desc||''; $('#eSpec').value = m.spec||'';
+  $('#eOpts').value = optsToText(optsOf(m));
+  $('#editModal').classList.add('on');
+  $('#eName').focus();
+};
+
+// 세부 선택 항목 ↔ 글: 한 줄에 '항목: 선택지, 선택지'. 콜론 뒤가 비면 직접 적는 칸.
+let editId = '';
+const optsToText = o => (o||[]).map(x => x.label + ': ' + (x.choices||[]).join(', ')).join('\n');
+function parseOpts(t){
+  return t.split('\n').map(l => l.trim()).filter(Boolean).map(l => {
+    const i = l.search(/[:：]/);
+    const label = (i<0 ? l : l.slice(0,i)).trim();
+    const choices = (i<0 ? '' : l.slice(i+1)).split(/[,，]/).map(x=>x.trim()).filter(Boolean);
+    return {label, choices};
+  }).filter(o => o.label);
+}
+$('#eOk').onclick = async () => {
+  const m = master.find(x=>x.id===editId); if(!m) return;
+  const name = $('#eName').value.trim();
+  if(!name){ $('#eName').focus(); return; }
+  const data = {name, desc:$('#eDesc').value.trim(), spec:$('#eSpec').value.trim(), updatedBy:me.email};
+  const txt = $('#eOpts').value.trim();
+  if(txt !== optsToText(optsOf(m)).trim()) data.opts = parseOpts(txt);
+  if(name !== m.name) data.surl = 'https://search.shopping.naver.com/search/all?query=' + encodeURIComponent(name);
+  try{
+    await updateDoc(doc(db,'materials',editId), data);
+    $('#editModal').classList.remove('on');
+    toast('저장했습니다');
+  }catch(err){
+    console.error(err);
+    alert('저장하지 못했습니다. 다시 시도해 주세요.\n' + (err.code || err.message || ''));
+  }
 };
 
 $('#nCat').innerHTML = CATS.map(c=>`<option>${esc(c)}</option>`).join('');
 $('#bulkSite').innerHTML = SITE_ORDER.map(x=>`<option>${esc(x)}</option>`).join('');
+$('#bulkChan').innerHTML = CHANNELS.map(x=>`<option>${esc(x)}</option>`).join('');
 $('#addBtn').onclick = () => $('#newModal').classList.add('on');
 $('#nOk').onclick = async () => {
   const name=$('#nName').value.trim(), spec=$('#nSpec').value.trim();
   if(!name){ $('#nName').focus(); return; }
-  if(!spec){ $('#nSpec').focus(); return; }
   const id = 'N'+Date.now().toString(36);
   await setDoc(doc(db,'materials',id), {id, name, spec, cat:$('#nCat').value,
     vendor:$('#nVendor').value.trim(), url:$('#nUrl').value.trim(),
     surl:'https://search.shopping.naver.com/search/all?query='+encodeURIComponent((name+' '+spec).slice(0,60)),
-    site:'미지정', ch:'on', base:'', hq:'', pool:false, by:me.email});
+    site:'미지정', ch:'on', chan:'온라인', base:'', hq:'', by:me.email});
   for(const rid of regIds) await updateDoc(doc(db,'requests',rid), {itemId:id, custom:false, updatedBy:me.email});
   regIds = [];
   ['#nName','#nSpec','#nVendor','#nUrl'].forEach(s=>$(s).value='');
