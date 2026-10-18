@@ -627,16 +627,30 @@ $('#cartList').onclick = e => {
 
 $('#submitBtn').onclick = async () => {
   const branch = $('#fBranch').value, who = $('#fWho').value.trim();
-  if(!who){ $('#cartModal').classList.remove('on'); $('#fWho').focus(); return; }
+  if(!me){ alert('로그인이 필요합니다. 오른쪽 위 로그인 버튼을 눌러 주세요.'); return; }
+  if(!who){
+    $('#cartModal').classList.remove('on');
+    alert('요청자 이름을 입력해 주세요. 화면 위쪽 \'요청자 이름\' 칸에 적고 다시 요청 등록을 눌러 주세요.');
+    $('#fWho').focus(); return;
+  }
   const memo = $('#cMemo').value.trim();
   $('#submitBtn').disabled = true;
-  for(const c of cart){
-    await addDoc(collection(db,'requests'), {...c, branch, requester:who, memo,
-      status:'요청', unitPrice:null, by:me.email, createdAt:serverTimestamp()});
+  try{
+    for(const c of cart){
+      await addDoc(collection(db,'requests'), {...c, branch, requester:who, memo,
+        status:'요청', unitPrice:null, by:me.email, createdAt:serverTimestamp()});
+    }
+  }catch(err){
+    console.error(err);
+    alert('요청을 저장하지 못했습니다. 담아 둔 내용은 그대로 남아 있으니 다시 시도해 주세요.\n' + (err.code || err.message || ''));
+    $('#submitBtn').disabled = false;
+    return;
   }
   cart = []; $('#cartN').textContent = '0'; $('#cMemo').value='';
   $('#cartModal').classList.remove('on'); $('#submitBtn').disabled = false;
+  $('#aSt').value = '요청';
   document.querySelector('[data-tab="agg"]').click();
+  toast('요청이 등록되었습니다');
 };
 
 // ── 모아보기
