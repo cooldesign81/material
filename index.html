@@ -56,6 +56,12 @@ label{display:block;font-size:12px;font-weight:600;color:var(--text-sub);margin-
 .badge-base{background:#E7ECF2;color:var(--slot-navy)}
 .badge-new{background:#F3E3F7;color:#7B2D8E}
 .badge-over{background:#E4EEF5;color:#1968A1}
+.off-r{display:flex;gap:12px;align-items:flex-start;padding:10px 12px;border-bottom:1px solid var(--line);background:#fff}
+.off-r:last-child{border-bottom:0}
+.off-r .n{flex:1;min-width:0}
+.off-r .b{flex:0 0 160px}
+.off-r .a{flex:0 0 auto;display:flex;gap:6px;align-items:center}
+.off-list{border:1px solid var(--line);border-top:0;border-radius:0 0 var(--r-card) var(--r-card);overflow:hidden}
 .opt-grp{margin-top:12px}
 .opt-grp .chips{margin-bottom:0}
 .cart-note{margin-top:6px;padding:5px 8px;font-size:12px}
@@ -186,7 +192,7 @@ tr.grp:hover td{background:#EFF2F5}
   <div class="logo">자라다 재료</div>
   <nav>
     <button data-tab="req" aria-current="page">온라인 주문요청</button>
-    <button data-tab="off">거래처 주문요청</button>
+    <button data-tab="off">거래처·본사 요청</button>
     <button data-tab="agg">모아보기</button>
     <button data-tab="cat">품목관리</button>
   </nav>
@@ -224,13 +230,24 @@ tr.grp:hover td{background:#EFF2F5}
   <!-- 거래처 주문요청 -->
   <section id="tab-off" hidden>
     <div class="sect">
-      <h2>거래처 주문요청</h2>
-      <p class="sub">본사와 오프라인 거래처에서 받는 재료입니다. 거래처별로 묶여 있고, 주문은 담당자가 거래처에 직접 넣습니다.</p>
-      <p class="sub" style="color:var(--brand-orange);font-weight:600">거래처·본사 주문은 준비 중입니다. 요청은 저장되지만 아직 모아보기에는 나오지 않습니다.</p>
-      <div class="filters">
-        <input id="qOff" placeholder="품목 검색">
+      <h2>거래처·본사 요청</h2>
+      <p class="sub">본사와 오프라인 거래처에서 받는 재료입니다. <b>요청하기</b>에서 담고, 구매 담당자는 <b>모인 요청</b>에서 거래처·본사별로 모아 확인해 직접 주문하세요.</p>
+      <div class="chips" id="offMode">
+        <button class="chip" data-m="req" aria-pressed="true">요청하기</button>
+        <button class="chip" data-m="agg" aria-pressed="false">모인 요청 <span class="num" id="offCnt"></span></button>
       </div>
-      <div id="offBody"></div>
+      <div id="offReqView">
+        <div class="filters">
+          <input id="qOff" placeholder="품목 검색">
+        </div>
+        <div id="offBody"></div>
+      </div>
+      <div id="offAggView" hidden>
+        <div class="filters">
+          <select id="offSt" style="width:auto"><option value="요청">요청 대기</option><option value="주문완료">주문 완료</option><option value="">전체</option></select>
+        </div>
+        <div id="offAgg"></div>
+      </div>
     </div>
   </section>
 
@@ -238,7 +255,7 @@ tr.grp:hover td{background:#EFF2F5}
   <section id="tab-agg" hidden>
     <div class="sect">
       <h2>요청 모아보기</h2>
-      <p class="sub">온라인·해외온라인 요청만 모았습니다. 원별로, 그 안에서 다시 구매처별로 묶었습니다. 요청에는 수량·규격이 없을 수 있으니 구매 담당자가 <b>수량</b>과 <b>구매 규격</b>을 직접 넣으세요. 구매처마다 주문 준비를 누르면 그 쇼핑몰 것만 한꺼번에 열립니다. 품목별 보기로 바꾸면 같은 재료를 원마다 얼마에 샀는지 비교할 수 있습니다.</p>
+      <p class="sub">온라인·해외온라인 요청만 모았습니다. 원별로, 그 안에서 다시 구매처별로 묶었습니다. 요청에 수량·규격이 없는 건 정상입니다. 실제로 장바구니에 담을 때 정하면 되고, 필요하면 <b>구매 규격</b>에 기록해 두세요. 구매처마다 주문 준비를 누르면 그 쇼핑몰 것만 한꺼번에 열립니다. 품목별 보기로 바꾸면 같은 재료를 원마다 얼마에 샀는지 비교할 수 있습니다.</p>
       <div class="sum" id="sum"></div>
       <div class="filters">
         <select id="aView" style="width:auto"><option value="branch">원별 보기</option><option value="item">품목별 보기</option></select>
@@ -475,12 +492,12 @@ function watch(){
   onSnapshot(collection(db,'materials'), s => {
     master = s.docs.map(d=>({...d.data(), id:d.id}))
       .sort((a,b)=> a.cat.localeCompare(b.cat,'ko') || a.name.localeCompare(b.name,'ko'));
-    renderItems(); renderOff(); renderCat(); renderAgg();
+    renderItems(); renderOff(); renderCat(); renderAgg(); renderOffAgg();
     if($('#orderModal').classList.contains('on')) renderOrder();
   });
   onSnapshot(query(collection(db,'requests')), s => {
     reqs = s.docs.map(d=>({...d.data(), id:d.id}));
-    renderAgg();
+    renderAgg(); renderOffAgg();
   });
 }
 
@@ -490,10 +507,15 @@ document.querySelectorAll('.appbar nav button').forEach(b => b.onclick = () => {
   b.setAttribute('aria-current','page');
   const t0 = b.dataset.tab;
   ['req','off','agg','cat'].forEach(t => $('#tab-'+t).hidden = (t !== t0));
-  const isReq = (t0==='req' || t0==='off');
+  curTab = t0; syncChrome();
+});
+let curTab = 'req', offMode = 'req';
+// 요청자 선택칸과 '요청 담기' 버튼은 요청하는 화면에서만 보인다
+function syncChrome(){
+  const isReq = curTab==='req' || (curTab==='off' && offMode==='req');
   $('#requester').style.display = isReq ? 'block' : 'none';
   $('.cart').style.display = isReq ? 'block' : 'none';
-});
+}
 
 // ── 분류 칩
 let activeCat = '';
@@ -767,13 +789,14 @@ function linkOf(v){
 
 function stCls(s){ return s==='주문완료'?'st-done':s==='장바구니'?'st-cart':'st-req'; }
 
-// 구매 담당자가 넣은 수량이 있으면 그것, 없으면 요청 수량(둘 다 없으면 null)
-const qtyOf = v => v.buyQty!=null ? v.buyQty : v.reqQty;
+// 요청자가 적은 수량(없으면 null). 구매 수량은 장바구니에 담을 때 정한다.
+const qtyOf = v => v.reqQty;
 
 function itemCell(v){
   const m = metaV(v);
   return `<b>${esc(v.name)}</b>${reqChan({itemId:v.itemId, chan:v.chan, ch:v.ch})==='해외온라인'?' <span class="badge badge-over">해외</span>':''}
     ${v.spec?`<div class="sub" style="margin:0">요청: ${esc(v.spec)}</div>`:''}
+    ${v.reqQty!=null?`<div class="brk">요청 수량 <b class="num">${v.reqQty}</b></div>`:''}
     ${v.notes.map(n=>`<div class="brk">메모: ${esc(n)}</div>`).join('')}
     ${m.vendor?`<div class="brk">${esc(m.vendor)}</div>`:''}
     ${m.url?`<div><a class="brk" href="${esc(m.url)}" target="_blank" rel="noopener">상품 페이지</a></div>`:''}
@@ -786,12 +809,9 @@ function itemCell(v){
 }
 function actCells(v){
   const m = metaV(v);
-  const q = qtyOf(v);
-  return `<td class="right"><input type="number" min="0" class="num" data-qty style="width:72px;padding:4px 6px" value="${q??''}" placeholder="수량"></td>
-    <td><input data-bspec style="width:150px;padding:4px 6px" value="${esc(v.buySpec)}" placeholder="규격"></td>
+  return `<td><input data-bspec style="width:150px;padding:4px 6px" value="${esc(v.buySpec)}" placeholder="규격"></td>
     <td class="brk">${esc(m.base||'—')}</td>
     <td class="right"><input type="number" class="num" data-unit style="width:84px;padding:4px 6px" value="${v.unit??''}" placeholder="—"></td>
-    <td class="right num">${v.unit&&q!=null?won(v.unit*q):'—'}</td>
     <td><span class="st ${stCls(v.status)}">${esc(v.status)}</span></td>
     <td><select data-next style="padding:4px 6px;font-size:12px">
       <option value="">이동</option><option value="요청">요청</option>
@@ -810,11 +830,10 @@ function renderAgg(){
   rows.forEach(r => {
     const k = (byBranch ? r.branch+'|' : '') + r.itemId + '|' + (r.spec||'');
     const v = g[k] = g[k] || {branch:r.branch, itemId:r.itemId, name:r.name, spec:r.spec||'', ch:r.ch, chan:r.chan,
-      br:{}, reqQty:null, buyQty:null, buySpec:'', ids:[], unit:r.unitPrice, status:r.status,
+      br:{}, reqQty:null, buySpec:'', ids:[], unit:r.unitPrice, status:r.status,
       custom:!!r.custom, refUrl:r.refUrl||'', why:r.why||'', notes:[]};
     v.br[r.branch] = (v.br[r.branch]||0) + (r.qty||0);
     if(r.qty!=null) v.reqQty = (v.reqQty||0) + r.qty;
-    if(r.buyQty!=null) v.buyQty = r.buyQty;
     if(r.buySpec) v.buySpec = r.buySpec;
     [r.note, r.memo].forEach(n => { if(n && !v.notes.includes(n)) v.notes.push(n); });
     v.ids.push(r.id);
@@ -823,24 +842,21 @@ function renderAgg(){
   aggArr = Object.entries(g).sort((a,b)=>a[1].name.localeCompare(b[1].name,'ko'));
   aggArr.forEach(([,v],i)=> v.gi = i);
 
-  const amt = v => (v.unit && qtyOf(v)!=null) ? v.unit*qtyOf(v) : 0;
-  const total = aggArr.reduce((s,[,v])=> s+amt(v), 0);
   const brTxt = v => Object.entries(v.br).map(([b,q])=> q ? `${esc(b)} <b class="num">${q}</b>` : esc(b)).join(' · ');
 
   if(byBranch){
     const per = {};
-    BRANCHES.forEach(b => per[b] = {n:0, amt:0});
-    aggArr.forEach(([,v])=>{ const p = per[v.branch] || (per[v.branch]={n:0,amt:0}); p.n++; p.amt+=amt(v); });
+    BRANCHES.forEach(b => per[b] = {n:0});
+    aggArr.forEach(([,v])=>{ const p = per[v.branch] || (per[v.branch]={n:0}); p.n++; });
 
     $('#sum').innerHTML =
       Object.entries(per).map(([b,p])=>`
-      <div class="box"><div class="k">${esc(b)}원 · ${p.n}품목</div><div class="v num">${p.amt?won(p.amt):p.n}</div>
-      <div class="brk">${p.amt?'원':'품목 (금액 미입력)'}</div></div>`).join('') +
-      `<div class="box"><div class="k">전체 합계</div><div class="v num">${total?won(total):'—'}</div></div>`;
+      <div class="box"><div class="k">${esc(b)}원</div><div class="v num">${p.n}</div><div class="brk">품목</div></div>`).join('') +
+      `<div class="box"><div class="k">전체</div><div class="v num">${aggArr.length}</div><div class="brk">품목</div></div>`;
 
-    $('#aggHead').innerHTML = `<tr><th style="width:30%">품목</th><th class="right" style="width:9%">수량</th>
-      <th style="width:16%">구매 규격</th><th style="width:10%">기준단가</th><th class="right" style="width:11%">실단가</th>
-      <th class="right" style="width:10%">금액</th><th style="width:7%">상태</th><th style="width:7%"></th></tr>`;
+    $('#aggHead').innerHTML = `<tr><th style="width:38%">품목</th>
+      <th style="width:20%">구매 규격</th><th style="width:12%">기준단가</th><th class="right" style="width:14%">실단가</th>
+      <th style="width:8%">상태</th><th style="width:8%"></th></tr>`;
 
     const bySite = list => {
       const o = {};
@@ -850,9 +866,8 @@ function renderAgg(){
     };
     const rowsOf = list => list.map(([,v])=>`<tr data-ids="${v.ids.join(',')}"><td>${itemCell(v)}</td>${actCells(v)}</tr>`).join('');
     const siteRows = (list, scope) => bySite(list).map(([st, items]) => {
-      const q = items.reduce((s,[,v])=>s+(qtyOf(v)||0),0);
-      return `<tr class="sub"><td colspan="8"><span class="site">${esc(st)}</span>
-        <span class="brk">${items.length}품목${q?' · '+q+'개':''}</span>
+      return `<tr class="sub"><td colspan="6"><span class="site">${esc(st)}</span>
+        <span class="brk">${items.length}품목</span>
         <button class="btn btn-sec btn-sm" style="float:right" data-order="${esc(scope)}|${esc(st)}">주문 준비</button></td></tr>`
         + rowsOf(items);
     }).join('');
@@ -863,29 +878,28 @@ function renderAgg(){
       const list = aggArr.filter(([,v])=>v.branch===b);
       if(!list.length) return;
       const p = per[b];
-      html += `<tr class="grp"><td colspan="8"><b>${esc(b)}원</b>
-        <span class="brk"> ${p.n}품목${p.amt?' · '+won(p.amt)+'원':''} — 이 원으로 직접 배송</span>
+      html += `<tr class="grp"><td colspan="6"><b>${esc(b)}원</b>
+        <span class="brk"> ${p.n}품목 — 이 원으로 직접 배송</span>
         <button class="btn btn-sec btn-sm" style="float:right" data-order="${esc(b)}|*">전체 주문 준비</button></td></tr>`;
       html += siteRows(list, b);
     });
-    $('#aggBody').innerHTML = html || '<tr><td colspan="8"><div class="empty">아직 요청이 없습니다. 요청하기 탭에서 재료를 담아 보세요.</div></td></tr>';
+    $('#aggBody').innerHTML = html || '<tr><td colspan="6"><div class="empty">아직 요청이 없습니다. 요청하기 탭에서 재료를 담아 보세요.</div></td></tr>';
     return;
   }
 
   // 품목별 — 원마다 단가가 다른지 비교용
   $('#sum').innerHTML = `
     <div class="box"><div class="k">품목 수</div><div class="v num">${aggArr.length}</div></div>
-    <div class="box"><div class="k">2개 원 이상 요청</div><div class="v num">${aggArr.filter(([,v])=>Object.keys(v.br).length>1).length}</div></div>
-    <div class="box"><div class="k">합계 금액</div><div class="v num">${total?won(total):'—'}</div></div>`;
+    <div class="box"><div class="k">2개 원 이상 요청</div><div class="v num">${aggArr.filter(([,v])=>Object.keys(v.br).length>1).length}</div></div>`;
 
-  $('#aggHead').innerHTML = `<tr><th style="width:26%">품목</th><th style="width:13%">요청한 원</th>
-    <th class="right" style="width:8%">수량</th><th style="width:14%">구매 규격</th><th style="width:9%">기준단가</th>
-    <th class="right" style="width:10%">실단가</th><th class="right" style="width:9%">금액</th>
-    <th style="width:6%">상태</th><th style="width:5%"></th></tr>`;
+  $('#aggHead').innerHTML = `<tr><th style="width:32%">품목</th><th style="width:16%">요청한 원</th>
+    <th style="width:18%">구매 규격</th><th style="width:10%">기준단가</th>
+    <th class="right" style="width:12%">실단가</th>
+    <th style="width:6%">상태</th><th style="width:6%"></th></tr>`;
 
   $('#aggBody').innerHTML = aggArr.length ? aggArr.map(([,v])=>`<tr data-ids="${v.ids.join(',')}">
     <td>${itemCell(v)}</td><td class="brk">${brTxt(v)}</td>${actCells(v)}</tr>`).join('')
-    : '<tr><td colspan="9"><div class="empty">아직 요청이 없습니다. 요청하기 탭에서 재료를 담아 보세요.</div></td></tr>';
+    : '<tr><td colspan="7"><div class="empty">아직 요청이 없습니다. 요청하기 탭에서 재료를 담아 보세요.</div></td></tr>';
 }
 $('#aggBody').addEventListener('focusout', () => setTimeout(() => {
   if(!$('#aggBody').contains(document.activeElement)) renderAgg();
@@ -944,7 +958,7 @@ function renderOrder(){
     return `<div class="ob-r${i<orderIdx?' done':''}">
       <div class="ob-n"><b>${esc(v.name)}</b> ${kb}
         <div class="s">${esc(v.buySpec||v.spec)}</div></div>
-      <div class="ob-q num">${qtyOf(v)??'—'}</div>
+      <div class="ob-q num">${qtyOf(v)??''}</div>
       ${qtyOf(v)!=null?`<button class="btn btn-sec btn-sm" data-ocopy="${qtyOf(v)}">수량 복사</button>`:''}
       ${L.u ? `<button class="btn btn-sec btn-sm" data-oone="${esc(L.u)}">열기</button>` : ''}
     </div>`;
@@ -987,11 +1001,6 @@ $('#aggBody').addEventListener('click', e => {
 
 $('#aggBody').addEventListener('change', async e => {
   const tr = e.target.closest('tr'); const ids = tr.dataset.ids.split(',');
-  if(e.target.matches('[data-qty]')){
-    const v = e.target.value===''?null:Number(e.target.value);
-    for(const id of ids) await updateDoc(doc(db,'requests',id), {buyQty:v, updatedBy:me.email});
-    return;
-  }
   if(e.target.matches('[data-bspec]')){
     for(const id of ids) await updateDoc(doc(db,'requests',id), {buySpec:e.target.value.trim(), updatedBy:me.email});
     return;
@@ -1006,6 +1015,69 @@ $('#aggBody').addEventListener('change', async e => {
     if(v==='__del'){ openDel(ids, tr.querySelector('b').textContent); e.target.value=''; return; }
     for(const id of ids) await updateDoc(doc(db,'requests',id), {status:v, updatedBy:me.email});
   }
+});
+
+// ── 거래처·본사: 모인 요청
+const isOffReq = r => ['거래처','본사'].includes(reqChan(r));
+let offGroups = {};
+$('#offMode').onclick = e => {
+  const b = e.target.closest('.chip'); if(!b) return;
+  offMode = b.dataset.m;
+  $('#offMode').querySelectorAll('.chip').forEach(x=>x.setAttribute('aria-pressed', x===b));
+  $('#offReqView').hidden = offMode!=='req';
+  $('#offAggView').hidden = offMode!=='agg';
+  syncChrome();
+};
+$('#offSt').onchange = renderOffAgg;
+
+function renderOffAgg(){
+  const all = reqs.filter(isOffReq);
+  const waiting = all.filter(r=>r.status!=='주문완료').length;
+  $('#offCnt').textContent = waiting ? '('+waiting+')' : '';
+  const st = $('#offSt').value;
+  const g = {};
+  all.filter(r => !st || r.status===st).forEach(r => {
+    const m = master.find(x=>x.id===r.itemId) || {};
+    const grp = offGroup(m);
+    const k = grp+'|'+r.itemId+'|'+(r.spec||'');
+    const v = ((g[grp] = g[grp] || {})[k] = g[grp][k] || {name:r.name, spec:r.spec||'', br:{}, ids:[], status:r.status, notes:[], custom:!!r.custom});
+    v.br[r.branch] = (v.br[r.branch]||0) + (r.qty||0);
+    v.ids.push(r.id);
+    [r.note, r.memo].forEach(n => { if(n && !v.notes.includes(n)) v.notes.push(n); });
+  });
+  offGroups = {};
+  const brTxt = v => Object.entries(v.br).map(([b,q]) => b + (q ? ' '+q : ''));
+  const order = OFF_ORDER.filter(x => g[x]);
+  $('#offAgg').innerHTML = order.length ? order.map(grp => {
+    const list = Object.values(g[grp]).sort((a,b)=>a.name.localeCompare(b.name,'ko'));
+    offGroups[grp] = list;
+    return `<div class="vgrp">
+      <div class="vhead" style="display:flex;align-items:center;gap:6px"><b>${esc(grp)}</b><span class="brk">${list.length}품목</span>
+        <button class="btn btn-sec btn-sm" style="margin-left:auto" data-offcopy="${esc(grp)}">목록 복사</button></div>
+      <div class="off-list">${list.map(v=>`<div class="off-r" data-ids="${v.ids.join(',')}">
+        <div class="n"><b>${esc(v.name)}</b>${v.custom?' <span class="badge badge-new">목록에 없던 재료</span>':''}
+          ${v.spec?`<div class="sub" style="margin:0">요청: ${esc(v.spec)}</div>`:''}
+          ${v.notes.map(n=>`<div class="brk">메모: ${esc(n)}</div>`).join('')}</div>
+        <div class="b brk">${brTxt(v).map(t=>esc(t)).join(' · ')}</div>
+        <div class="a"><span class="st ${stCls(v.status)}">${esc(v.status)}</span>
+          <select data-next style="padding:4px 6px;font-size:12px;width:auto">
+            <option value="">이동</option><option value="요청">요청</option><option value="주문완료">주문완료</option><option value="__del">삭제</option></select></div>
+      </div>`).join('')}</div></div>`;
+  }).join('')
+  : '<div class="empty">모인 거래처·본사 요청이 없습니다.</div>';
+}
+$('#offAgg').addEventListener('click', e => {
+  const c = e.target.closest('[data-offcopy]'); if(!c) return;
+  const grp = c.dataset.offcopy;
+  copyText(['['+grp+']', ...(offGroups[grp]||[]).map(v =>
+    [v.name, v.spec, Object.entries(v.br).map(([b,q])=>b+(q?' '+q:'')).join(', ')].filter(Boolean).join(' / '))].join('\n'));
+});
+$('#offAgg').addEventListener('change', async e => {
+  if(!e.target.matches('[data-next]')) return;
+  const row = e.target.closest('.off-r'); const ids = row.dataset.ids.split(',');
+  const v = e.target.value; if(!v) return;
+  if(v==='__del'){ openDel(ids, row.querySelector('b').textContent); e.target.value=''; return; }
+  for(const id of ids) await updateDoc(doc(db,'requests',id), {status:v, updatedBy:me.email});
 });
 
 // ── 삭제 확인
