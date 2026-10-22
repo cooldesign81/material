@@ -280,7 +280,7 @@ tr.grp:hover td{background:#EFF2F5}
   <section id="tab-ord" hidden>
     <div class="sect">
       <h2>주문관리</h2>
-      <p class="sub">장바구니에 담긴 건이 여기로 넘어옵니다. <b>결제 권한자</b>가 결제하면 <b>주문 완료</b>, 결제하지 않으면 <b>반려</b>(사유 메모, 요청자에게 안내)로 처리합니다. 재료가 도착하면 <b>재료 담당자</b>가 <b>배송 완료</b>, <b>검수 완료</b> 순서로 처리하세요. 잘못 눌렀다면 <b>되돌리기</b>로 이전 단계로 돌립니다.</p>
+      <p class="sub">장바구니에 담긴 건이 여기로 넘어옵니다. <b>결제 권한자</b>가 결제하면 <b>주문 완료</b>, 결제하지 않으면 <b>반려</b>(사유 메모, 요청자에게 안내)로 처리합니다. 재료가 도착해 확인하면 <b>재료 담당자</b>가 <b>배송·검수 완료</b>로 처리하세요. 반려된 건은 <b>재료 담당자</b>가 사유를 확인한 뒤 <b>확인 및 삭제</b>로 목록에서 지웁니다. 잘못 눌렀다면 <b>되돌리기</b>로 이전 단계로 돌립니다.</p>
       <div class="filters">
         <select id="ordBr" style="width:auto"><option value="">전체 원</option><option value="평촌">평촌</option><option value="반포">반포</option><option value="대치">대치</option></select>
       </div>
@@ -428,7 +428,7 @@ tr.grp:hover td{background:#EFF2F5}
   </div>
 </div></div>
 
-<!-- 처리 메모 (반려·결제·배송·검수) -->
+<!-- 처리 메모 (반려·결제·배송·검수 완료) -->
 <div class="modal" id="actModal"><div class="modal-box" style="max-width:480px">
   <div class="modal-head"><span id="actTitle">처리</span><button data-close>&times;</button></div>
   <div class="modal-body">
@@ -496,7 +496,7 @@ const isOff = m => ['거래처','본사'].includes(chanOf(m));
 // 역할별 권한. 이메일을 적으면 그 사람에게만 해당 버튼이 보이고, 비워 두면 로그인한 모두에게 보인다.
 //   buyer  : 모아보기에서 수량 입력·장바구니 처리·반려 (구매 담당자)
 //   payer  : 주문관리에서 결제 완료·반려 (결제 권한자)
-//   keeper : 주문관리에서 배송 완료·검수 완료 (재료 담당자)
+//   keeper : 주문관리에서 배송·검수 완료 (재료 담당자)
 // 화면에서 버튼만 가리는 것이라 실제 권한 제한은 Firebase 보안 규칙으로 따로 걸어야 한다.
 const ROLES = { buyer:[], payer:[], keeper:[] };
 const can = (...roles) => roles.some(r => !ROLES[r].length || (me && ROLES[r].includes(me.email)));
@@ -866,7 +866,7 @@ function linkOf(v){
 }
 
 function stCls(s){
-  return s==='주문완료'||s==='검수완료' ? 'st-done' : s==='장바구니'||s==='배송완료' ? 'st-cart'
+  return s==='주문완료'||s==='검수완료'||s==='배송완료' ? 'st-done' : s==='장바구니' ? 'st-cart'
        : s==='반려' ? 'st-rej' : 'st-req';
 }
 
@@ -1238,51 +1238,53 @@ $('#offAgg').addEventListener('change', async e => {
   for(const id of ids) await updateDoc(doc(db,'requests',id), {status:v, updatedBy:me.email});
 });
 
-// ── 주문관리: 결제(권한자) → 배송·검수(재료 담당자)
+// ── 주문관리: 결제(권한자) → 배송·검수 완료(재료 담당자)
+// 배송 완료와 검수 완료를 하나로 합쳤다. 저장 값은 '검수완료'를 쓰고, 예전에 저장된 '배송완료'도 같은 단계로 본다.
 const ORD_STAGES = ['장바구니','주문완료','배송완료','검수완료','반려'];
-const stLabel = s => s==='장바구니' ? '결제 대기' : s;
-const ORD_CHIPS = [['장바구니','결제 대기'],['주문완료','주문 완료'],['배송완료','배송 완료'],['검수완료','검수 완료'],['반려','반려'],['','전체']];
+const stOf = r => r.status==='배송완료' ? '검수완료' : r.status;
+const ST_LABEL = {장바구니:'결제 대기', 검수완료:'배송·검수 완료', 배송완료:'배송·검수 완료'};
+const stLabel = s => ST_LABEL[s] || s;
+const ORD_CHIPS = [['장바구니','결제 대기'],['주문완료','주문 완료'],['검수완료','배송·검수 완료'],['반려','반려'],['','전체']];
 let ordSt = '장바구니';
-const PREV = {주문완료:'장바구니', 배송완료:'주문완료', 검수완료:'배송완료', 반려:'장바구니'};
+const PREV = {주문완료:'장바구니', 검수완료:'주문완료', 반려:'장바구니'};
 // act: [동작, 버튼 글자, 권한, 스타일]
 const ACTIONS = {
   '장바구니': [['pay','결제 완료',['payer'],'primary'], ['reject','반려',['payer'],'danger']],
-  '주문완료': [['ship','배송 완료',['keeper'],'primary'], ['undo','되돌리기',['payer'],'']],
-  '배송완료': [['inspect','검수 완료',['keeper'],'primary'], ['undo','되돌리기',['keeper'],'']],
+  '주문완료': [['inspect','배송·검수 완료',['keeper'],'primary'], ['undo','되돌리기',['payer'],'']],
   '검수완료': [['undo','되돌리기',['keeper'],'']],
-  '반려':     [['undo','장바구니로 되돌리기',['payer','buyer'],'']]
+  '반려':     [['dismiss','확인 및 삭제',['keeper'],'primary'], ['undo','장바구니로 되돌리기',['payer','buyer'],'']]
 };
 const FLOW = {
   pay:    {to:'주문완료', ask:{title:'결제 완료', label:'결제 메모 (선택)', placeholder:'예: 법인카드 결제, 주문번호', ok:'결제 완료로 표시'}},
   reject: {to:'반려',     ask:{title:'결제 반려', label:'반려 사유', placeholder:'요청자에게 안내됩니다', required:true, ok:'반려하기', danger:true}},
-  ship:   {to:'배송완료', ask:{title:'배송 완료', label:'메모 (선택)', placeholder:'예: 일부만 도착, 택배 파손 등', ok:'배송 완료로 표시'}},
-  inspect:{to:'검수완료', ask:{title:'검수 완료', label:'검수 메모 (선택)', placeholder:'예: 수량 확인 완료, 불량 1개', ok:'검수 완료로 표시'}},
+  inspect:{to:'검수완료', ask:{title:'배송·검수 완료', label:'메모 (선택)', placeholder:'예: 수량 확인 완료, 불량 1개, 일부만 도착', ok:'배송·검수 완료로 표시'}},
+  dismiss:{},
   undo:   {}
 };
-const BULK = {'장바구니':'pay', '주문완료':'ship', '배송완료':'inspect'};
+const BULK = {'장바구니':'pay', '주문완료':'inspect', '반려':'dismiss'};
 
 function ordRows(){
   const br = $('#ordBr').value;
-  return reqs.filter(r => ORD_STAGES.includes(r.status) && isOnlineReq(r) && (!br || r.branch===br));
+  return reqs.filter(r => ORD_STAGES.includes(r.status) && !r.orderHidden && isOnlineReq(r) && (!br || r.branch===br));
 }
 function renderOrd(){
   const all = ordRows();
-  const cnt = st => all.filter(r => r.status===st).length;
+  const cnt = st => all.filter(r => stOf(r)===st).length;
   $('#ordSt').innerHTML = ORD_CHIPS.map(([v,l]) => {
     const n = v ? cnt(v) : all.length;
     return `<button class="chip" data-st="${v}" aria-pressed="${v===ordSt}">${l}${n?` <span class="num">${n}</span>`:''}</button>`;
   }).join('');
 
   const g = {};
-  all.filter(r => !ordSt || r.status===ordSt).forEach(r => {
-    const k = [r.branch, r.itemId, r.spec||'', r.status].join('|');
-    const v = g[k] = g[k] || {branch:r.branch, itemId:r.itemId, name:r.name, spec:r.spec||'', status:r.status,
+  all.filter(r => !ordSt || stOf(r)===ordSt).forEach(r => {
+    const k = [r.branch, r.itemId, r.spec||'', stOf(r)].join('|');
+    const v = g[k] = g[k] || {branch:r.branch, itemId:r.itemId, name:r.name, spec:r.spec||'', status:stOf(r),
       ids:[], buyQty:null, reqQty:null, notes:[], logs:[], stage:r.rejectStage||''};
     v.ids.push(r.id);
     if(r.buyQty!=null) v.buyQty = r.buyQty;
     if(r.qty!=null) v.reqQty = (v.reqQty||0) + r.qty;
     [r.note, r.memo].forEach(n => { if(n && !v.notes.includes(n)) v.notes.push(n); });
-    const last = [...(r.log||[])].reverse().find(x => x.s===r.status);
+    const last = [...(r.log||[])].reverse().find(x => stOf({status:x.s})===stOf(r));
     if(last && last.note && !v.logs.includes(last.note)) v.logs.push(last.note);
   });
   const rows = Object.values(g).sort((a,b)=>a.name.localeCompare(b.name,'ko'));
@@ -1303,16 +1305,30 @@ function renderOrd(){
     const list = rows.filter(v => v.branch===b);
     if(!list.length) return '';
     const bulk = BULK[ordSt] && can(...FLOW_ROLES[BULK[ordSt]]);
-    const bulkLabel = {pay:'전체 결제 완료', ship:'전체 배송 완료', inspect:'전체 검수 완료'}[BULK[ordSt]];
+    const bulkLabel = {pay:'전체 결제 완료', inspect:'전체 배송·검수 완료', dismiss:'전체 확인 및 삭제'}[BULK[ordSt]];
     return `<div class="vgrp">
       <div class="vhead" style="display:flex;align-items:center;gap:6px"><b>${esc(b)}원</b><span class="brk">${list.length}품목</span>
         ${bulk ? `<button class="btn btn-sec btn-sm" style="margin-left:auto" data-bulk="${BULK[ordSt]}" data-ids="${list.flatMap(v=>v.ids).join(',')}" data-from="${esc(ordSt)}" data-who="${esc(b)}원">${bulkLabel}</button>` : ''}</div>
       <div class="off-list">${list.map(rowHtml).join('')}</div></div>`;
   }).join('') : '<div class="empty">이 상태의 건이 없습니다.</div>';
 }
-const FLOW_ROLES = {pay:['payer'], ship:['keeper'], inspect:['keeper']};
+const FLOW_ROLES = {pay:['payer'], inspect:['keeper'], dismiss:['keeper']};
 
+// 반려 건 확인 후 목록에서 지운다. 요청자 안내와 처리 이력은 남도록 요청 자체는 지우지 않고 목록에서만 숨긴다.
+async function dismissRejected(ids, what){
+  if(!confirm(`${what}의 반려 내용을 확인했고 주문관리 목록에서 삭제합니다. (${ids.length}건)`)) return;
+  await safely(async () => {
+    const at = new Date().toISOString();
+    for(const id of ids){
+      const r = reqs.find(x=>x.id===id) || {};
+      await updateDoc(doc(db,'requests',id), {orderHidden:true, dismissedBy:me.email, dismissedAt:at,
+        log:[...(r.log||[]), {s:'반려확인', by:me.email, at, note:''}], updatedBy:me.email});
+    }
+    toast('확인했습니다. 목록에서 삭제했어요');
+  });
+}
 async function doAct(act, ids, from, what){
+  if(act==='dismiss'){ await dismissRejected(ids, what); return; }
   const f = FLOW[act];
   let note = '', to = f.to;
   if(act==='undo'){
