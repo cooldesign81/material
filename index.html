@@ -212,7 +212,7 @@ tr.grp:hover td{background:#EFF2F5}
   <section id="tab-req">
     <div class="sect">
       <h2>온라인 주문요청</h2>
-      <p class="sub">쇼핑몰(국내·해외)에서 사는 재료입니다. 필요한 걸 담아 요청하세요. 수량과 규격은 구매 담당자가 정하니 몰라도 괜찮고, 색상·굵기처럼 꼭 알려야 하는 것만 고르면 됩니다.</p>
+      <p class="sub">쇼핑몰(국내·해외)에서 사는 재료입니다. 필요한 걸 담아 요청하세요. 수량과 규격은 구매 담당자가 정하니 적지 않아도 되고, 색상·굵기처럼 꼭 알려야 하는 것만 세부 선택에서 고르면 됩니다.</p>
       <div class="filters">
         <input id="q" placeholder="품목 검색 (예: 도화지, 레진, 테이프)">
         <button class="btn btn-sec" id="customBtn">목록에 없는 재료 요청</button>
@@ -343,12 +343,7 @@ tr.grp:hover td{background:#EFF2F5}
     <label for="xName">재료 이름</label>
     <input id="xName" placeholder="예: 우드스틱" autocomplete="off">
     <div id="xHints"></div>
-    <label for="xSpec" style="margin-top:12px">규격 (선택)</label>
-    <input id="xSpec" placeholder="예: 공예용 114mm 1000개 / 흰색">
-    <div class="row" style="margin-top:12px">
-      <div style="flex:0 0 112px"><label for="xQty">수량 (선택)</label><input id="xQty" type="number" min="1" step="1" class="num"></div>
-      <div style="flex:1;min-width:180px"><label for="xUrl">참고 링크 (선택)</label><input id="xUrl" placeholder="상품 주소를 알면 붙여넣기"></div>
-    </div>
+    <label for="xUrl" style="margin-top:12px">참고 링크 (선택)</label><input id="xUrl" placeholder="상품 주소를 알면 붙여넣기">
     <label for="xWhy" style="margin-top:12px">어디에 쓰나요 (선택)</label>
     <input id="xWhy" placeholder="예: 5월 자동차 만들기 수업">
     <p class="sub" style="margin:12px 0 0">담당자가 확인한 뒤 정식 품목으로 등록합니다. 그 전까지는 요청 목록에만 보입니다.</p>
@@ -547,7 +542,6 @@ function cardHtml(m){
       ${m.spec?`<div class="meta">이전 구매: ${esc(m.spec)}</div>`:''}
       ${op.length?`<div class="brk">고를 항목: ${op.map(o=>esc(o.label)).join(', ')}</div>`:''}
       <div class="act">
-        <input type="number" min="1" step="1" placeholder="수량" class="num" aria-label="${esc(m.name)} 수량">
         <button class="btn btn-sec btn-sm" style="flex:1">담기</button>
       </div>
     </div>`;
@@ -595,11 +589,8 @@ const pickHandler = e => {
   const btn = e.target.closest('button'); if(!btn) return;
   const el = e.target.closest('.item');
   const m = master.find(x=>x.id===el.dataset.id);
-  const inp = el.querySelector('input');
-  const qty = parseInt(inp.value,10) || null;
-  inp.value = '';
-  if(optsOf(m).length){ openOpts(m, qty); return; }
-  addCart(m, qty, '');
+  if(optsOf(m).length){ openOpts(m, null); return; }
+  addCart(m, null, '');
 };
 $('#items').onclick = pickHandler;
 $('#offBody').onclick = pickHandler;
@@ -665,7 +656,7 @@ function renderHints(){
       <button class="btn btn-sec btn-sm" data-pick="${esc(m.id)}">이걸로</button></div>`).join('') + `</div>`;
 }
 $('#customBtn').onclick = () => {
-  ['#xName','#xSpec','#xQty','#xUrl','#xWhy'].forEach(s=>$(s).value='');
+  ['#xName','#xUrl','#xWhy'].forEach(s=>$(s).value='');
   $('#xHints').innerHTML = '';
   $('#customModal').classList.add('on');
   $('#xName').focus();
@@ -674,16 +665,14 @@ $('#xName').oninput = renderHints;
 $('#xHints').onclick = e => {
   const b = e.target.closest('[data-pick]'); if(!b) return;
   const m = master.find(x => x.id === b.dataset.pick);
-  const qty = parseInt($('#xQty').value,10) || null;
   $('#customModal').classList.remove('on');
-  if(optsOf(m).length){ openOpts(m, qty); return; }
-  addCart(m, qty, '');
+  if(optsOf(m).length){ openOpts(m, null); return; }
+  addCart(m, null, '');
 };
 $('#xOk').onclick = () => {
-  const name = $('#xName').value.trim(), spec = $('#xSpec').value.trim();
+  const name = $('#xName').value.trim();
   if(!name){ $('#xName').focus(); return; }
-  const qty = parseInt($('#xQty').value,10) || null;
-  cart.push({itemId:'X:'+name, name, cat:'미분류', spec, ch:'on', chan:'온라인', qty, note:'',
+  cart.push({itemId:'X:'+name, name, cat:'미분류', spec:'', ch:'on', chan:'온라인', qty:null, note:'',
              custom:true, refUrl:$('#xUrl').value.trim(), why:$('#xWhy').value.trim()});
   cartCount();
   $('#customModal').classList.remove('on');
@@ -695,7 +684,6 @@ function renderCartList(){
     <div style="padding:8px 0;border-bottom:1px solid var(--line)">
       <div style="display:flex;gap:8px;align-items:center">
         <div style="flex:1"><b>${esc(c.name)}</b>${c.spec?`<div class="sub" style="margin:0">${esc(c.spec)}</div>`:''}</div>
-        ${c.qty!=null?`<span class="num" style="font-weight:700">${c.qty}</span>`:'<span class="brk">수량 미정</span>'}
         <button class="btn btn-sec btn-sm" data-rm="${i}">빼기</button>
       </div>
       <input class="cart-note" data-note="${i}" placeholder="이 품목 메모 (선택)" value="${esc(c.note||'')}">
