@@ -66,13 +66,28 @@ label{display:block;font-size:12px;font-weight:600;color:var(--text-sub);margin-
 .notice{background:#FFF4F3;border:1px solid #F3C4C0;border-radius:var(--r-card);padding:12px 14px;margin-bottom:8px;display:flex;gap:12px;align-items:flex-start}
 .notice .t{flex:1}
 .badge-count{background:#D92D20;color:#fff;font-size:11px;font-weight:700;border-radius:9px;padding:1px 6px;margin-left:6px}
-.thumb{width:44px;height:44px;border-radius:6px;object-fit:cover;border:1px solid var(--line);background:#fff;flex:0 0 auto;cursor:zoom-in}
-.thumb-btn{width:44px;height:44px;border:1px dashed #BFBFBF;border-radius:6px;background:#fff;color:var(--text-sub);cursor:pointer;padding:0;overflow:hidden;font-size:18px;line-height:1}
+/* 사진 크기: body[data-thumb] = S(작게) / M(보통) / L(크게). c=요청 카드, r=목록 줄, o=주문 준비 창 */
+body{--tr:84px;--tt:64px}
+body[data-thumb="S"]{--tr:44px;--tt:44px}
+body[data-thumb="L"]{--tr:128px;--tt:88px}
+.thumb{border-radius:6px;object-fit:cover;border:1px solid var(--line);background:#fff;flex:0 0 auto;cursor:zoom-in}
+.thumb.r{width:var(--tr);height:var(--tr)}
+.thumb.o{width:max(36px,calc(var(--tr) * .6));height:max(36px,calc(var(--tr) * .6))}
+.thumb.c{width:56px;height:56px}
+.card-top{display:flex;gap:10px;align-items:flex-start}
+body[data-thumb="M"] .card-top,body[data-thumb="L"] .card-top{flex-direction:column;gap:8px}
+body[data-thumb="M"] .card-top .thumb.c{width:100%;max-width:150px;height:auto;aspect-ratio:1/1}
+body[data-thumb="L"] .card-top .thumb.c{width:100%;max-width:280px;height:auto;aspect-ratio:1/1}
+.seg{display:flex;align-items:center;gap:2px;background:rgba(0,0,0,.08);border-radius:6px;padding:2px}
+.seg .seg-l{padding:0 6px;font-size:12px;font-weight:700}
+.seg button{border:0;background:none;padding:4px 8px;border-radius:4px;font:inherit;font-size:12px;font-weight:700;cursor:pointer;color:var(--ink)}
+.seg button[aria-pressed="true"]{background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.15)}
+.thumb-btn{width:var(--tt);height:var(--tt);border:1px dashed #BFBFBF;border-radius:6px;background:#fff;color:var(--text-sub);cursor:pointer;padding:0;overflow:hidden;font-size:18px;line-height:1}
 .thumb-btn img{width:100%;height:100%;object-fit:cover;display:block}
 .drop{display:flex;align-items:center;gap:12px;border:2px dashed #CFCFCF;border-radius:8px;padding:10px;background:#FAFAFA}
 .drop.over{border-color:var(--brand-orange);background:#FFF7E8}
-.drop img{width:96px;height:96px;object-fit:contain;border:1px solid var(--line);border-radius:6px;background:#fff;flex:0 0 auto}
-.drop .ph{width:96px;height:96px;border:1px solid var(--line);border-radius:6px;background:#fff;color:#BFBFBF;display:flex;align-items:center;justify-content:center;font-size:30px;flex:0 0 auto}
+.drop img{width:120px;height:120px;object-fit:contain;border:1px solid var(--line);border-radius:6px;background:#fff;flex:0 0 auto}
+.drop .ph{width:120px;height:120px;border:1px solid var(--line);border-radius:6px;background:#fff;color:#BFBFBF;display:flex;align-items:center;justify-content:center;font-size:30px;flex:0 0 auto}
 .opt-grp{margin-top:12px}
 .opt-grp .chips{margin-bottom:0}
 .cart-note{margin-top:6px;padding:5px 8px;font-size:12px}
@@ -211,7 +226,10 @@ tr.grp:hover td{background:#BFD0E4}
     <button data-tab="ord">주문관리</button>
     <button data-tab="cat">품목관리</button>
   </nav>
-  <div class="who"><button class="btn btn-sec btn-sm" id="authBtn">로그인</button></div>
+  <div class="who">
+    <div class="seg" id="thumbSeg" role="group" aria-label="사진 크기"><span class="seg-l">사진</span>
+      <button type="button" data-s="S" aria-pressed="false">작게</button><button type="button" data-s="M" aria-pressed="true">보통</button><button type="button" data-s="L" aria-pressed="false">크게</button></div>
+    <button class="btn btn-sec btn-sm" id="authBtn">로그인</button></div>
 </div>
 
 <main>
@@ -524,9 +542,9 @@ const chanOf = m => m.chan || (m.site==='본사' ? '본사'
   : OFFLINE_SITES.includes(m.site||'미지정') ? '거래처' : '온라인');
 const isOff = m => ['거래처','본사'].includes(chanOf(m));
 
-// ── 썸네일: 200×200 JPEG(약 10KB)로 줄여서 품목 데이터(thumb)에 함께 저장한다.
+// ── 썸네일: 280×280 JPEG(약 10~20KB)로 줄여서 품목 데이터(thumb)에 함께 저장한다.
 // 별도 저장소(Firebase Storage) 설정 없이 지금 구성 그대로 쓸 수 있다.
-const THUMB = 200;
+const THUMB = 280;
 function toThumb(file){
   return new Promise((res, rej) => {
     const url = URL.createObjectURL(file), img = new Image();
@@ -536,14 +554,30 @@ function toThumb(file){
       const k = Math.min(THUMB/img.width, THUMB/img.height), w = img.width*k, h = img.height*k;
       x.drawImage(img, (THUMB-w)/2, (THUMB-h)/2, w, h);
       URL.revokeObjectURL(url);
-      res(c.toDataURL('image/jpeg', 0.82));
+      res(c.toDataURL('image/jpeg', 0.8));
     };
     img.onerror = () => { URL.revokeObjectURL(url); rej(new Error('이미지를 읽지 못했습니다')); };
     img.src = url;
   });
 }
-const thumbImg = (m, size=44) => (m && m.thumb)
-  ? `<img class="thumb" src="${m.thumb}" alt="${esc(m.name||'')}" style="width:${size}px;height:${size}px" loading="lazy">` : '';
+// kind: c=요청 카드, r=목록 줄, o=주문 준비 창. 크기는 CSS(사진 크기 선택)가 정한다.
+const thumbImg = (m, kind='r') => (m && m.thumb)
+  ? `<img class="thumb ${kind}" src="${m.thumb}" alt="${esc(m.name||'')}" loading="lazy">` : '';
+
+// 사진 크기 선택(작게/보통/크게): 이 브라우저에 기억해 둔다
+let thumbSize = 'M';
+try{ const v = localStorage.getItem('thumbSize'); if(['S','M','L'].includes(v)) thumbSize = v; }catch(e){}
+function applyThumbSize(){
+  document.body.dataset.thumb = thumbSize;
+  $('#thumbSeg').querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', b.dataset.s===thumbSize));
+}
+$('#thumbSeg').onclick = e => {
+  const b = e.target.closest('button'); if(!b) return;
+  thumbSize = b.dataset.s;
+  try{ localStorage.setItem('thumbSize', thumbSize); }catch(e){}
+  applyThumbSize();
+};
+applyThumbSize();
 
 // 역할별 권한. 이메일을 적으면 그 사람에게만 해당 버튼이 보이고, 비워 두면 로그인한 모두에게 보인다.
 //   buyer  : 모아보기에서 수량 입력·장바구니 처리·반려 (구매 담당자)
@@ -640,7 +674,7 @@ function cardHtml(m){
   const op = optsOf(m);
   return `
     <div class="item" data-id="${m.id}">
-      <div style="display:flex;gap:10px;align-items:flex-start">${thumbImg(m,56)}
+      <div class="card-top">${thumbImg(m,'c')}
         <div style="flex:1;min-width:0"><h4>${esc(m.name)}</h4>
         ${m.desc?`<div class="sub" style="margin:2px 0 0">${esc(m.desc)}</div>`:''}</div></div>
       <div class="tags">
@@ -928,7 +962,7 @@ const qtyOf = v => v.buyQty!=null ? v.buyQty : v.reqQty;
 
 function itemCell(v){
   const m = metaV(v);
-  return `<div style="display:flex;gap:10px;align-items:flex-start">${thumbImg(m,44)}<div style="min-width:0"><b>${esc(v.name)}</b>${reqChan({itemId:v.itemId, chan:v.chan, ch:v.ch})==='해외온라인'?' <span class="badge badge-over">해외</span>':''}
+  return `<div style="display:flex;gap:10px;align-items:flex-start">${thumbImg(m,'r')}<div style="min-width:0"><b>${esc(v.name)}</b>${reqChan({itemId:v.itemId, chan:v.chan, ch:v.ch})==='해외온라인'?' <span class="badge badge-over">해외</span>':''}
     ${v.spec?`<div class="sub" style="margin:0">요청: ${esc(v.spec)}</div>`:''}
     ${v.notes.map(n=>`<div class="brk">메모: ${esc(n)}</div>`).join('')}
     ${m.vendor?`<div class="brk">${esc(m.vendor)}</div>`:''}
@@ -1113,7 +1147,7 @@ function renderOrder(){
              : L.kind==='오프라인' ? '<span class="badge badge-off">오프라인</span>'
              : '<span class="badge badge-sea">검색</span>';
     return `<div class="ob-r${i<orderIdx?' done':''}">
-      ${thumbImg(metaV(v),36)}
+      ${thumbImg(metaV(v),'o')}
       <div class="ob-n"><b>${esc(v.name)}</b> ${kb}${!cartAuto(v) && L.kind!=='오프라인' ? ' <span class="badge badge-off">직접 담기</span>' : ''}
         <div class="s">${esc(v.spec)}</div></div>
       <div class="ob-q num">${qtyOf(v)??''}</div>
@@ -1399,7 +1433,7 @@ function renderOrd(){
   const btns = v => (ACTIONS[v.status]||[]).filter(a => can(...a[2])).map(a =>
     `<button class="btn ${a[3]==='primary'?'btn-primary':a[3]==='danger'?'btn-danger':'btn-sec'} btn-sm" data-act="${a[0]}">${a[1]}</button>`).join('');
   const rowHtml = v => `<div class="off-r" data-ids="${v.ids.join(',')}" data-from="${esc(v.status)}">
-    ${thumbImg(metaV(v),44)}
+    ${thumbImg(metaV(v),'r')}
     <div class="n"><b>${esc(v.name)}</b>
       ${v.spec?`<div class="sub" style="margin:0">요청: ${esc(v.spec)}</div>`:''}
       ${v.notes.map(n=>`<div class="brk">요청 메모: ${esc(n)}</div>`).join('')}
