@@ -62,6 +62,10 @@ label{display:block;font-size:12px;font-weight:600;color:var(--text-sub);margin-
 .off-r .b{flex:0 0 160px}
 .off-r .a{flex:0 0 auto;display:flex;gap:6px;align-items:center}
 .off-list{border:1px solid var(--line);border-top:0;border-radius:0 0 var(--r-card) var(--r-card);overflow:hidden}
+.st-rej{background:#FBE3E3;color:#B42318}
+.notice{background:#FFF4F3;border:1px solid #F3C4C0;border-radius:var(--r-card);padding:12px 14px;margin-bottom:8px;display:flex;gap:12px;align-items:flex-start}
+.notice .t{flex:1}
+.badge-count{background:#D92D20;color:#fff;font-size:11px;font-weight:700;border-radius:9px;padding:1px 6px;margin-left:6px}
 .opt-grp{margin-top:12px}
 .opt-grp .chips{margin-bottom:0}
 .cart-note{margin-top:6px;padding:5px 8px;font-size:12px}
@@ -191,9 +195,10 @@ tr.grp:hover td{background:#EFF2F5}
 <div class="appbar">
   <div class="logo">자라다 재료</div>
   <nav>
-    <button data-tab="req" aria-current="page">온라인 주문요청</button>
+    <button data-tab="req" aria-current="page">온라인 주문요청<span class="badge-count" id="reqBadge" hidden></span></button>
     <button data-tab="off">거래처·본사 요청</button>
     <button data-tab="agg">모아보기</button>
+    <button data-tab="ord">주문관리</button>
     <button data-tab="cat">품목관리</button>
   </nav>
   <div class="who"><button class="btn btn-sec btn-sm" id="authBtn">로그인</button></div>
@@ -208,6 +213,8 @@ tr.grp:hover td{background:#EFF2F5}
       </div>
     </div>
   </div>
+
+  <div id="myNotices"></div>
 
   <section id="tab-req">
     <div class="sect">
@@ -255,16 +262,29 @@ tr.grp:hover td{background:#EFF2F5}
   <section id="tab-agg" hidden>
     <div class="sect">
       <h2>요청 모아보기</h2>
-      <p class="sub">온라인·해외온라인 요청만 모았습니다. 원별로, 그 안에서 다시 구매처별로 묶었습니다. 요청에 수량·규격이 없는 건 정상입니다. 실제로 장바구니에 담을 때 정하면 되고, 필요하면 <b>구매 규격</b>에 기록해 두세요. 구매처마다 주문 준비를 누르면 그 쇼핑몰 것만 한꺼번에 열립니다. 품목별 보기로 바꾸면 같은 재료를 원마다 얼마에 샀는지 비교할 수 있습니다.</p>
+      <p class="sub">아직 처리하지 않은 <b>요청 대기</b> 건만 보입니다(온라인·해외온라인). 원별로, 그 안에서 다시 구매처별로 묶었습니다. 요청에는 수량이 없으니 <b>수량</b>은 여기서 입력하세요. 구매 규격과 기준단가는 품목관리에 적힌 대로 보입니다. 장바구니에 담았으면 <b>처리 → 장바구니 담음</b>으로 주문관리에 넘기고, 살 수 없는 건 <b>반려</b>하세요. 반려하면 요청자에게 안내됩니다.</p>
       <div class="sum" id="sum"></div>
       <div class="filters">
         <select id="aView" style="width:auto"><option value="branch">원별 보기</option><option value="item">품목별 보기</option></select>
-        <select id="aSt" style="width:auto"><option value="요청">요청 대기</option><option value="장바구니">장바구니 담음</option><option value="주문완료">주문 완료</option><option value="">전체</option></select>
+        <select id="aBr" style="width:auto"><option value="">전체 원</option><option value="평촌">평촌</option><option value="반포">반포</option><option value="대치">대치</option></select>
         <select id="aCh" style="width:auto"><option value="">온라인·해외온라인 전체</option><option value="온라인">온라인만</option><option value="해외온라인">해외온라인만</option></select>
         <button class="btn btn-sec" id="printBtn">인쇄</button>
       </div>
       <p class="scroll-note" id="aggNote">표를 옆으로 밀면 나머지 열이 보입니다.</p>
       <div class="tbl-wrap"><table id="aggTbl"><thead id="aggHead"></thead><tbody id="aggBody"></tbody></table></div>
+    </div>
+  </section>
+
+  <!-- 주문관리 -->
+  <section id="tab-ord" hidden>
+    <div class="sect">
+      <h2>주문관리</h2>
+      <p class="sub">장바구니에 담긴 건이 여기로 넘어옵니다. <b>결제 권한자</b>가 결제하면 <b>주문 완료</b>, 결제하지 않으면 <b>반려</b>(사유 메모, 요청자에게 안내)로 처리합니다. 재료가 도착하면 <b>재료 담당자</b>가 <b>배송 완료</b>, <b>검수 완료</b> 순서로 처리하세요. 잘못 눌렀다면 <b>되돌리기</b>로 이전 단계로 돌립니다.</p>
+      <div class="filters">
+        <select id="ordBr" style="width:auto"><option value="">전체 원</option><option value="평촌">평촌</option><option value="반포">반포</option><option value="대치">대치</option></select>
+      </div>
+      <div class="chips" id="ordSt"></div>
+      <div id="ordBody"></div>
     </div>
   </section>
 
@@ -385,11 +405,37 @@ tr.grp:hover td{background:#EFF2F5}
   </div>
   <div class="modal-foot">
     <button class="btn btn-sec" id="obCopyAll">목록 전체 복사</button>
-    <button class="btn btn-sec" id="obClaude" title="내 컴퓨터의 Claude(Chrome)에 붙여넣으면 로그인된 쇼핑몰 장바구니에 담아 줍니다">장바구니 지시문 복사</button>
+    <button class="btn btn-sec" id="obClaude" title="내용을 확인하고 고친 뒤, Chrome이 연결된 Claude에 붙여넣으면 장바구니에 담아 줍니다">장바구니 지시문 미리보기</button>
     <button class="btn btn-sec" id="obCartDone">장바구니 담음으로 표시</button>
     <button class="btn btn-sec" data-close>닫기</button>
     <button class="btn btn-primary" id="obNext">상품 열기</button>
   </div>
+</div></div>
+
+<!-- 장바구니 지시문 미리보기 -->
+<div class="modal" id="promptModal"><div class="modal-box" style="max-width:780px">
+  <div class="modal-head"><span>장바구니 지시문 미리보기</span><button data-close>&times;</button></div>
+  <div class="modal-body">
+    <p class="sub" id="pmHint" style="margin-bottom:8px"></p>
+    <textarea id="pmText" rows="18" style="font-size:13px;line-height:1.5"></textarea>
+    <p class="sub" style="margin:8px 0 0">내용을 직접 고쳐도 됩니다. 복사해서 Chrome이 연결된 Claude에 붙여넣으세요.</p>
+  </div>
+  <div class="modal-foot">
+    <button class="btn btn-sec" data-close>닫기</button>
+    <button class="btn btn-sec" id="pmReset">처음 내용으로</button>
+    <button class="btn btn-primary" id="pmCopy">복사</button>
+  </div>
+</div></div>
+
+<!-- 처리 메모 (반려·결제·배송·검수) -->
+<div class="modal" id="actModal"><div class="modal-box" style="max-width:480px">
+  <div class="modal-head"><span id="actTitle">처리</span><button data-close>&times;</button></div>
+  <div class="modal-body">
+    <p class="sub" id="actWhat" style="margin-bottom:8px"></p>
+    <label for="actNote" id="actLabel">메모</label>
+    <textarea id="actNote" rows="3"></textarea>
+  </div>
+  <div class="modal-foot"><button class="btn btn-sec" data-close>취소</button><button class="btn btn-primary" id="actOk">확인</button></div>
 </div></div>
 
 <!-- 요청 취소 확인 (파괴적) -->
@@ -446,6 +492,14 @@ const chanOf = m => m.chan || (m.site==='본사' ? '본사'
   : OFFLINE_SITES.includes(m.site||'미지정') ? '거래처' : '온라인');
 const isOff = m => ['거래처','본사'].includes(chanOf(m));
 
+// 역할별 권한. 이메일을 적으면 그 사람에게만 해당 버튼이 보이고, 비워 두면 로그인한 모두에게 보인다.
+//   buyer  : 모아보기에서 수량 입력·장바구니 처리·반려 (구매 담당자)
+//   payer  : 주문관리에서 결제 완료·반려 (결제 권한자)
+//   keeper : 주문관리에서 배송 완료·검수 완료 (재료 담당자)
+// 화면에서 버튼만 가리는 것이라 실제 권한 제한은 Firebase 보안 규칙으로 따로 걸어야 한다.
+const ROLES = { buyer:[], payer:[], keeper:[] };
+const can = (...roles) => roles.some(r => !ROLES[r].length || (me && ROLES[r].includes(me.email)));
+
 // 세부 선택: 품목에 opts가 저장돼 있으면 그것을, 없으면 이름으로 추정한 기본값을 쓴다.
 // choices가 비어 있으면 요청자가 직접 적는 칸이 된다.
 const COLORS = ['빨강','주황','노랑','초록','파랑','남색','보라','분홍','갈색','검정','흰색','금색','은색'];
@@ -489,12 +543,12 @@ function watch(){
   onSnapshot(collection(db,'materials'), s => {
     master = s.docs.map(d=>({...d.data(), id:d.id}))
       .sort((a,b)=> a.cat.localeCompare(b.cat,'ko') || a.name.localeCompare(b.name,'ko'));
-    renderItems(); renderOff(); renderCat(); renderAgg(); renderOffAgg();
+    renderItems(); renderOff(); renderCat(); renderAgg(); renderOffAgg(); renderOrd();
     if($('#orderModal').classList.contains('on')) renderOrder();
   });
   onSnapshot(query(collection(db,'requests')), s => {
     reqs = s.docs.map(d=>({...d.data(), id:d.id}));
-    renderAgg(); renderOffAgg();
+    renderAgg(); renderOffAgg(); renderOrd(); renderNotices();
   });
 }
 
@@ -503,7 +557,7 @@ document.querySelectorAll('.appbar nav button').forEach(b => b.onclick = () => {
   document.querySelectorAll('.appbar nav button').forEach(x=>x.removeAttribute('aria-current'));
   b.setAttribute('aria-current','page');
   const t0 = b.dataset.tab;
-  ['req','off','agg','cat'].forEach(t => $('#tab-'+t).hidden = (t !== t0));
+  ['req','off','agg','ord','cat'].forEach(t => $('#tab-'+t).hidden = (t !== t0));
   curTab = t0; syncChrome();
 });
 let curTab = 'req', offMode = 'req';
@@ -512,6 +566,7 @@ function syncChrome(){
   const isReq = curTab==='req' || (curTab==='off' && offMode==='req');
   $('#requester').style.display = isReq ? 'block' : 'none';
   $('.cart').style.display = isReq ? 'block' : 'none';
+  $('#myNotices').style.display = (curTab==='req' || curTab==='off') ? 'block' : 'none';
 }
 
 // ── 분류 칩
@@ -712,7 +767,7 @@ $('#submitBtn').onclick = async () => {
   try{
     for(const c of cart){
       await addDoc(collection(db,'requests'), {...c, branch, requester:who, memo,
-        status:'요청', unitPrice:null, by:me.email, createdAt:serverTimestamp()});
+        status:'요청', by:me.email, createdAt:serverTimestamp()});
     }
   }catch(err){
     console.error(err);
@@ -722,14 +777,47 @@ $('#submitBtn').onclick = async () => {
   }
   cart = []; cartCount(); $('#cMemo').value='';
   $('#cartModal').classList.remove('on'); $('#submitBtn').disabled = false;
-  $('#aSt').value = '요청';
   document.querySelector('[data-tab="agg"]').click();
   toast('요청이 등록되었습니다');
 };
 
-// ── 모아보기
-$('#aSt').onchange = renderAgg;
+// ── 처리 기록 / 메모 창
+// 상태를 바꿀 때마다 누가·언제·무슨 메모로 바꿨는지 log에 쌓는다.
+async function setStatus(ids, status, note='', extra={}){
+  const at = new Date().toISOString();
+  for(const id of ids){
+    const r = reqs.find(x=>x.id===id) || {};
+    const log = [...(r.log||[]), {s:status, by:me.email, at, note}];
+    await updateDoc(doc(db,'requests',id), {status, log, updatedBy:me.email, ...extra});
+  }
+}
+let actResolve = null, actRequired = false;
+function askNote(o){
+  return new Promise(res => {
+    actResolve = res; actRequired = !!o.required;
+    $('#actTitle').textContent = o.title;
+    $('#actWhat').textContent = o.what || '';
+    $('#actLabel').textContent = o.label || '메모';
+    $('#actNote').value = ''; $('#actNote').placeholder = o.placeholder || '';
+    $('#actOk').textContent = o.ok || '확인';
+    $('#actOk').className = 'btn ' + (o.danger ? 'btn-danger' : 'btn-primary');
+    $('#actModal').classList.add('on');
+    $('#actNote').focus();
+  });
+}
+$('#actOk').onclick = () => {
+  const v = $('#actNote').value.trim();
+  if(actRequired && !v){ $('#actNote').focus(); return; }
+  $('#actModal').classList.remove('on');
+  const r = actResolve; actResolve = null; if(r) r(v);
+};
+async function safely(fn){
+  try{ await fn(); }catch(err){ console.error(err); alert('처리하지 못했습니다. 다시 시도해 주세요.\n' + (err.code || err.message || '')); }
+}
+
+// ── 모아보기 (요청 대기만)
 $('#aCh').onchange = renderAgg;
+$('#aBr').onchange = renderAgg;
 $('#aView').onchange = renderAgg;
 $('#printBtn').onclick = () => window.print();
 
@@ -740,13 +828,12 @@ const reqChan = r => {
   const m = master.find(x=>x.id===r.itemId);
   return m ? chanOf(m) : (r.chan || (r.ch==='off' ? '거래처' : '온라인'));
 };
-// 모아보기에는 온라인·해외온라인만 모은다. 거래처·본사는 따로 정리 예정.
+const isOnlineReq = r => ['온라인','해외온라인'].includes(reqChan(r));
+// 모아보기에는 온라인·해외온라인의 '요청 대기'만 모은다. 거래처·본사는 따로 정리 예정.
 function groupRows(){
-  const st = $('#aSt').value, ch = $('#aCh').value;
-  return reqs.filter(r => {
-    const c = reqChan(r);
-    return (c==='온라인' || c==='해외온라인') && (!st || r.status===st) && (!ch || c===ch);
-  });
+  const ch = $('#aCh').value, br = $('#aBr').value;
+  return reqs.filter(r => r.status==='요청' && isOnlineReq(r) &&
+    (!ch || reqChan(r)===ch) && (!br || r.branch===br));
 }
 function meta(name){ return master.find(x=>x.name===name) || {}; }
 // 품목 이름을 바꿔도 예전 요청이 이어지도록 id로 먼저 찾는다
@@ -777,16 +864,18 @@ function linkOf(v){
   return {u:searchUrl(m), kind:'검색'};
 }
 
-function stCls(s){ return s==='주문완료'?'st-done':s==='장바구니'?'st-cart':'st-req'; }
+function stCls(s){
+  return s==='주문완료'||s==='검수완료' ? 'st-done' : s==='장바구니'||s==='배송완료' ? 'st-cart'
+       : s==='반려' ? 'st-rej' : 'st-req';
+}
 
-// 요청자가 적은 수량(없으면 null). 구매 수량은 장바구니에 담을 때 정한다.
-const qtyOf = v => v.reqQty;
+// 수량은 구매 담당자가 모아보기에서 넣은 값(없으면 예전 요청에 적힌 값, 둘 다 없으면 null)
+const qtyOf = v => v.buyQty!=null ? v.buyQty : v.reqQty;
 
 function itemCell(v){
   const m = metaV(v);
   return `<b>${esc(v.name)}</b>${reqChan({itemId:v.itemId, chan:v.chan, ch:v.ch})==='해외온라인'?' <span class="badge badge-over">해외</span>':''}
     ${v.spec?`<div class="sub" style="margin:0">요청: ${esc(v.spec)}</div>`:''}
-    ${v.reqQty!=null?`<div class="brk">요청 수량 <b class="num">${v.reqQty}</b></div>`:''}
     ${v.notes.map(n=>`<div class="brk">메모: ${esc(n)}</div>`).join('')}
     ${m.vendor?`<div class="brk">${esc(m.vendor)}</div>`:''}
     ${m.url?`<div><a class="brk" href="${esc(m.url)}" target="_blank" rel="noopener">상품 페이지</a></div>`:''}
@@ -797,20 +886,19 @@ function itemCell(v){
       <div style="margin-top:4px"><button class="btn btn-sec btn-sm" data-reg="${v.gi}">정식 품목으로 등록</button></div>
     </div>`:''}`;
 }
+// 수량만 입력할 수 있다. 구매 규격·기준단가는 품목관리에 적힌 대로 보여 주기만 한다.
 function actCells(v){
-  const m = metaV(v);
-  return `<td><input data-bspec style="width:150px;padding:4px 6px" value="${esc(v.buySpec)}" placeholder="규격"></td>
+  const m = metaV(v), buy = can('buyer');
+  return `<td class="right"><input type="number" min="0" class="num" data-qty style="width:72px;padding:4px 6px" value="${qtyOf(v)??''}" placeholder="수량"${buy?'':' disabled'}></td>
+    <td><div class="brk" style="white-space:pre-line;max-height:5.2em;overflow:auto">${esc(m.spec||'—')}</div></td>
     <td class="brk">${esc(m.base||'—')}</td>
-    <td class="right"><input type="number" class="num" data-unit style="width:84px;padding:4px 6px" value="${v.unit??''}" placeholder="—"></td>
-    <td><span class="st ${stCls(v.status)}">${esc(v.status)}</span></td>
-    <td><select data-next style="padding:4px 6px;font-size:12px">
-      <option value="">이동</option><option value="요청">요청</option>
-      <option value="장바구니">장바구니</option><option value="주문완료">주문완료</option>
-      <option value="__del">삭제</option></select></td>`;
+    <td>${buy ? `<select data-next style="padding:4px 6px;font-size:12px">
+      <option value="">처리</option><option value="cart">장바구니 담음</option>
+      <option value="reject">반려</option><option value="__del">삭제</option></select>` : '—'}</td>`;
 }
 
 function renderAgg(){
-  // 수량·규격을 입력하다가 칸을 옮기는 중에는 다시 그리지 않는다(입력 중이던 칸의 포커스가 사라짐)
+  // 수량을 입력하다가 칸을 옮기는 중에는 다시 그리지 않는다(입력 중이던 칸의 포커스가 사라짐)
   const ae = document.activeElement;
   if(ae && ae.tagName==='INPUT' && $('#aggBody').contains(ae)) return;
 
@@ -820,14 +908,13 @@ function renderAgg(){
   rows.forEach(r => {
     const k = (byBranch ? r.branch+'|' : '') + r.itemId + '|' + (r.spec||'');
     const v = g[k] = g[k] || {branch:r.branch, itemId:r.itemId, name:r.name, spec:r.spec||'', ch:r.ch, chan:r.chan,
-      br:{}, reqQty:null, buySpec:'', ids:[], unit:r.unitPrice, status:r.status,
+      br:{}, reqQty:null, buyQty:null, ids:[], status:r.status,
       custom:!!r.custom, refUrl:r.refUrl||'', why:r.why||'', notes:[]};
     v.br[r.branch] = (v.br[r.branch]||0) + (r.qty||0);
     if(r.qty!=null) v.reqQty = (v.reqQty||0) + r.qty;
-    if(r.buySpec) v.buySpec = r.buySpec;
+    if(r.buyQty!=null) v.buyQty = r.buyQty;
     [r.note, r.memo].forEach(n => { if(n && !v.notes.includes(n)) v.notes.push(n); });
     v.ids.push(r.id);
-    if(r.unitPrice!=null) v.unit = r.unitPrice;
   });
   aggArr = Object.entries(g).sort((a,b)=>a[1].name.localeCompare(b[1].name,'ko'));
   aggArr.forEach(([,v],i)=> v.gi = i);
@@ -840,13 +927,12 @@ function renderAgg(){
     aggArr.forEach(([,v])=>{ const p = per[v.branch] || (per[v.branch]={n:0}); p.n++; });
 
     $('#sum').innerHTML =
-      Object.entries(per).map(([b,p])=>`
-      <div class="box"><div class="k">${esc(b)}원</div><div class="v num">${p.n}</div><div class="brk">품목</div></div>`).join('') +
-      `<div class="box"><div class="k">전체</div><div class="v num">${aggArr.length}</div><div class="brk">품목</div></div>`;
+      Object.entries(per).filter(([b]) => !$('#aBr').value || b===$('#aBr').value).map(([b,p])=>`
+      <div class="box"><div class="k">${esc(b)}원</div><div class="v num">${p.n}</div><div class="brk">요청 대기 품목</div></div>`).join('') +
+      `<div class="box"><div class="k">전체</div><div class="v num">${aggArr.length}</div><div class="brk">요청 대기 품목</div></div>`;
 
-    $('#aggHead').innerHTML = `<tr><th style="width:38%">품목</th>
-      <th style="width:20%">구매 규격</th><th style="width:12%">기준단가</th><th class="right" style="width:14%">실단가</th>
-      <th style="width:8%">상태</th><th style="width:8%"></th></tr>`;
+    $('#aggHead').innerHTML = `<tr><th style="width:36%">품목</th><th class="right" style="width:10%">수량</th>
+      <th style="width:26%">구매 규격</th><th style="width:14%">기준단가</th><th style="width:14%">처리</th></tr>`;
 
     const bySite = list => {
       const o = {};
@@ -856,7 +942,7 @@ function renderAgg(){
     };
     const rowsOf = list => list.map(([,v])=>`<tr data-ids="${v.ids.join(',')}"><td>${itemCell(v)}</td>${actCells(v)}</tr>`).join('');
     const siteRows = (list, scope) => bySite(list).map(([st, items]) => {
-      return `<tr class="sub"><td colspan="6"><span class="site">${esc(st)}</span>
+      return `<tr class="sub"><td colspan="5"><span class="site">${esc(st)}</span>
         <span class="brk">${items.length}품목</span>
         <button class="btn btn-sec btn-sm" style="float:right" data-order="${esc(scope)}|${esc(st)}">주문 준비</button></td></tr>`
         + rowsOf(items);
@@ -868,28 +954,27 @@ function renderAgg(){
       const list = aggArr.filter(([,v])=>v.branch===b);
       if(!list.length) return;
       const p = per[b];
-      html += `<tr class="grp"><td colspan="6"><b>${esc(b)}원</b>
+      html += `<tr class="grp"><td colspan="5"><b>${esc(b)}원</b>
         <span class="brk"> ${p.n}품목 — 이 원으로 직접 배송</span>
         <button class="btn btn-sec btn-sm" style="float:right" data-order="${esc(b)}|*">전체 주문 준비</button></td></tr>`;
       html += siteRows(list, b);
     });
-    $('#aggBody').innerHTML = html || '<tr><td colspan="6"><div class="empty">아직 요청이 없습니다. 요청하기 탭에서 재료를 담아 보세요.</div></td></tr>';
+    $('#aggBody').innerHTML = html || '<tr><td colspan="5"><div class="empty">요청 대기 중인 건이 없습니다.</div></td></tr>';
     return;
   }
 
-  // 품목별 — 원마다 단가가 다른지 비교용
+  // 품목별 — 같은 재료를 어느 원이 요청했는지 한눈에
   $('#sum').innerHTML = `
-    <div class="box"><div class="k">품목 수</div><div class="v num">${aggArr.length}</div></div>
+    <div class="box"><div class="k">품목 수</div><div class="v num">${aggArr.length}</div><div class="brk">요청 대기</div></div>
     <div class="box"><div class="k">2개 원 이상 요청</div><div class="v num">${aggArr.filter(([,v])=>Object.keys(v.br).length>1).length}</div></div>`;
 
-  $('#aggHead').innerHTML = `<tr><th style="width:32%">품목</th><th style="width:16%">요청한 원</th>
-    <th style="width:18%">구매 규격</th><th style="width:10%">기준단가</th>
-    <th class="right" style="width:12%">실단가</th>
-    <th style="width:6%">상태</th><th style="width:6%"></th></tr>`;
+  $('#aggHead').innerHTML = `<tr><th style="width:28%">품목</th><th style="width:14%">요청한 원</th>
+    <th class="right" style="width:9%">수량</th><th style="width:25%">구매 규격</th><th style="width:12%">기준단가</th>
+    <th style="width:12%">처리</th></tr>`;
 
   $('#aggBody').innerHTML = aggArr.length ? aggArr.map(([,v])=>`<tr data-ids="${v.ids.join(',')}">
     <td>${itemCell(v)}</td><td class="brk">${brTxt(v)}</td>${actCells(v)}</tr>`).join('')
-    : '<tr><td colspan="7"><div class="empty">아직 요청이 없습니다. 요청하기 탭에서 재료를 담아 보세요.</div></td></tr>';
+    : '<tr><td colspan="6"><div class="empty">요청 대기 중인 건이 없습니다.</div></td></tr>';
 }
 $('#aggBody').addEventListener('focusout', () => setTimeout(() => {
   if(!$('#aggBody').contains(document.activeElement)) renderAgg();
@@ -942,7 +1027,7 @@ function renderOrder(){
   $('#obHint').innerHTML = `${BATCH}개씩 새 탭으로 엽니다. 등록해 둔 상품 ${fixed}개는 그 페이지로, 나머지는 구매처 검색 결과로 열립니다.` +
     (off ? ` 오프라인 ${off}개는 열리지 않습니다 — 아래 <b>목록 전체 복사</b>로 거래처에 보내세요.` : '') +
     (manual ? ` <b>자동 장바구니 담기가 안 되는 ${manual}개</b>(${CART_BLOCKED.join('·')} 등)는 <b>직접 담아 주세요.</b>` : '');
-  $('#obClaude').textContent = `장바구니 지시문 복사 (${orderList.length-manual})`;
+  $('#obClaude').textContent = `장바구니 지시문 미리보기 (${orderList.length-manual})`;
   $('#obList').innerHTML = orderList.map((v,i) => {
     const L = link(v);
     const kb = L.kind==='확정' ? '<span class="badge badge-fix">등록 상품</span>'
@@ -950,7 +1035,7 @@ function renderOrder(){
              : '<span class="badge badge-sea">검색</span>';
     return `<div class="ob-r${i<orderIdx?' done':''}">
       <div class="ob-n"><b>${esc(v.name)}</b> ${kb}${!cartAuto(v) && L.kind!=='오프라인' ? ' <span class="badge badge-off">직접 담기</span>' : ''}
-        <div class="s">${esc(v.buySpec||v.spec)}</div></div>
+        <div class="s">${esc(v.spec)}</div></div>
       <div class="ob-q num">${qtyOf(v)??''}</div>
       ${qtyOf(v)!=null?`<button class="btn btn-sec btn-sm" data-ocopy="${qtyOf(v)}">수량 복사</button>`:''}
       ${L.u ? `<button class="btn btn-sec btn-sm" data-oone="${esc(L.u)}">열기</button>` : ''}
@@ -1011,7 +1096,8 @@ function cartPrompt(){
       const bits = [v.name];
       if(siteOf(v)==='미지정') bits.push('구매처 미지정');
       if(v.spec) bits.push('요청: '+v.spec);
-      if(v.buySpec) bits.push('구매 규격: '+v.buySpec);
+      const ref = (metaV(v).spec||'').split('\n').map(x=>x.trim()).filter(Boolean).slice(0,3).join(' / ');
+      if(ref) bits.push('참고 규격(이전 구매): '+ref);
       bits.push('수량: '+(qtyOf(v)!=null ? qtyOf(v) : '1 (요청에 수량 없음)'));
       if(v.notes.length) bits.push('메모: '+v.notes.join(' / '));
       // 검색 주소는 저장된 예전 검색어(옛 규격이 섞여 있음) 대신 품목명으로 새로 만든다
@@ -1023,28 +1109,36 @@ function cartPrompt(){
   });
   return lines.join('\n').trim();
 }
+// 지시문은 바로 복사하지 않고 미리보기 창에서 확인·수정한 뒤 복사한다.
+let pmOriginal = '';
 $('#obClaude').onclick = () => {
-  if(!orderList.some(cartAuto)){ toast('자동으로 담을 품목이 없습니다'); return; }
-  copyText(cartPrompt());
+  const auto = orderList.filter(cartAuto).length;
+  if(!auto){ toast('자동으로 담을 품목이 없습니다'); return; }
+  pmOriginal = cartPrompt();
+  $('#pmText').value = pmOriginal;
+  const manual = orderList.length - auto;
+  $('#pmHint').innerHTML = `자동으로 담을 품목 <b>${auto}개</b>` + (manual ? ` · 직접 담아야 해서 빠진 품목 ${manual}개` : '');
+  $('#promptModal').classList.add('on');
 };
+$('#pmReset').onclick = () => { $('#pmText').value = pmOriginal; };
+$('#pmCopy').onclick = () => copyText($('#pmText').value);
 $('#obCartDone').onclick = async () => {
   if(!orderList.length) return;
-  if(!confirm(`이 목록 ${orderList.length}품목을 "장바구니" 상태로 바꿉니다. 실제로 담은 뒤에 눌러 주세요.`)) return;
+  if(!confirm(`이 목록 ${orderList.length}품목을 장바구니에 담은 것으로 표시하고 주문관리로 넘깁니다. 실제로 담은 뒤에 눌러 주세요.`)) return;
   try{
-    for(const v of orderList) for(const id of v.ids)
-      await updateDoc(doc(db,'requests',id), {status:'장바구니', updatedBy:me.email});
+    await setStatus(orderList.flatMap(v => v.ids), '장바구니');
   }catch(err){
     console.error(err);
     alert('상태를 바꾸지 못했습니다. 다시 시도해 주세요.\n' + (err.code || err.message || ''));
     return;
   }
   $('#orderModal').classList.remove('on');
-  toast('장바구니 상태로 바꿨습니다');
+  toast('주문관리로 넘겼습니다');
 };
 $('#obCopyAll').onclick = () => {
   const [sc, si] = orderKey.split('|');
   const head = '[' + sc + '원' + (si==='*'?'':' · '+si) + ']';
-  copyText([head, ...orderList.map(v => [v.name, v.buySpec||v.spec, qtyOf(v)!=null?qtyOf(v)+'개':''].filter(Boolean).join(' / '))].join('\n'));
+  copyText([head, ...orderList.map(v => [v.name, v.spec, qtyOf(v)!=null?qtyOf(v)+'개':''].filter(Boolean).join(' / '))].join('\n'));
 };
 
 $('#aggBody').addEventListener('click', e => {
@@ -1060,19 +1154,25 @@ $('#aggBody').addEventListener('click', e => {
 
 $('#aggBody').addEventListener('change', async e => {
   const tr = e.target.closest('tr'); const ids = tr.dataset.ids.split(',');
-  if(e.target.matches('[data-bspec]')){
-    for(const id of ids) await updateDoc(doc(db,'requests',id), {buySpec:e.target.value.trim(), updatedBy:me.email});
-    return;
-  }
-  if(e.target.matches('[data-unit]')){
+  if(e.target.matches('[data-qty]')){
     const v = e.target.value===''?null:Number(e.target.value);
-    for(const id of ids) await updateDoc(doc(db,'requests',id), {unitPrice:v, updatedBy:me.email});
+    await safely(async () => { for(const id of ids) await updateDoc(doc(db,'requests',id), {buyQty:v, updatedBy:me.email}); });
     return;
   }
   if(e.target.matches('[data-next]')){
-    const v = e.target.value; if(!v) return;
-    if(v==='__del'){ openDel(ids, tr.querySelector('b').textContent); e.target.value=''; return; }
-    for(const id of ids) await updateDoc(doc(db,'requests',id), {status:v, updatedBy:me.email});
+    const act = e.target.value; e.target.value = '';
+    if(!act) return;
+    const name = tr.querySelector('b').textContent;
+    if(act==='__del'){ openDel(ids, name); return; }
+    if(act==='cart'){
+      await safely(async () => { await setStatus(ids, '장바구니'); toast('주문관리로 넘겼습니다'); });
+      return;
+    }
+    if(act==='reject'){
+      const note = await askNote({title:'요청 반려', what:`${name} · ${ids.length}건`, label:'반려 사유',
+        placeholder:'요청자에게 안내됩니다. 예: 판매처에서 단종, 다른 품목으로 대체 가능', required:true, ok:'반려하기', danger:true});
+      await safely(async () => { await setStatus(ids, '반려', note, {rejectNote:note, rejectStage:'구매', rejectSeen:false}); toast('반려했습니다. 요청자에게 안내됩니다'); });
+    }
   }
 });
 
@@ -1138,6 +1238,127 @@ $('#offAgg').addEventListener('change', async e => {
   if(v==='__del'){ openDel(ids, row.querySelector('b').textContent); e.target.value=''; return; }
   for(const id of ids) await updateDoc(doc(db,'requests',id), {status:v, updatedBy:me.email});
 });
+
+// ── 주문관리: 결제(권한자) → 배송·검수(재료 담당자)
+const ORD_STAGES = ['장바구니','주문완료','배송완료','검수완료','반려'];
+const stLabel = s => s==='장바구니' ? '결제 대기' : s;
+const ORD_CHIPS = [['장바구니','결제 대기'],['주문완료','주문 완료'],['배송완료','배송 완료'],['검수완료','검수 완료'],['반려','반려'],['','전체']];
+let ordSt = '장바구니';
+const PREV = {주문완료:'장바구니', 배송완료:'주문완료', 검수완료:'배송완료', 반려:'장바구니'};
+// act: [동작, 버튼 글자, 권한, 스타일]
+const ACTIONS = {
+  '장바구니': [['pay','결제 완료',['payer'],'primary'], ['reject','반려',['payer'],'danger']],
+  '주문완료': [['ship','배송 완료',['keeper'],'primary'], ['undo','되돌리기',['payer'],'']],
+  '배송완료': [['inspect','검수 완료',['keeper'],'primary'], ['undo','되돌리기',['keeper'],'']],
+  '검수완료': [['undo','되돌리기',['keeper'],'']],
+  '반려':     [['undo','장바구니로 되돌리기',['payer','buyer'],'']]
+};
+const FLOW = {
+  pay:    {to:'주문완료', ask:{title:'결제 완료', label:'결제 메모 (선택)', placeholder:'예: 법인카드 결제, 주문번호', ok:'결제 완료로 표시'}},
+  reject: {to:'반려',     ask:{title:'결제 반려', label:'반려 사유', placeholder:'요청자에게 안내됩니다', required:true, ok:'반려하기', danger:true}},
+  ship:   {to:'배송완료', ask:{title:'배송 완료', label:'메모 (선택)', placeholder:'예: 일부만 도착, 택배 파손 등', ok:'배송 완료로 표시'}},
+  inspect:{to:'검수완료', ask:{title:'검수 완료', label:'검수 메모 (선택)', placeholder:'예: 수량 확인 완료, 불량 1개', ok:'검수 완료로 표시'}},
+  undo:   {}
+};
+const BULK = {'장바구니':'pay', '주문완료':'ship', '배송완료':'inspect'};
+
+function ordRows(){
+  const br = $('#ordBr').value;
+  return reqs.filter(r => ORD_STAGES.includes(r.status) && isOnlineReq(r) && (!br || r.branch===br));
+}
+function renderOrd(){
+  const all = ordRows();
+  const cnt = st => all.filter(r => r.status===st).length;
+  $('#ordSt').innerHTML = ORD_CHIPS.map(([v,l]) => {
+    const n = v ? cnt(v) : all.length;
+    return `<button class="chip" data-st="${v}" aria-pressed="${v===ordSt}">${l}${n?` <span class="num">${n}</span>`:''}</button>`;
+  }).join('');
+
+  const g = {};
+  all.filter(r => !ordSt || r.status===ordSt).forEach(r => {
+    const k = [r.branch, r.itemId, r.spec||'', r.status].join('|');
+    const v = g[k] = g[k] || {branch:r.branch, itemId:r.itemId, name:r.name, spec:r.spec||'', status:r.status,
+      ids:[], buyQty:null, reqQty:null, notes:[], logs:[], stage:r.rejectStage||''};
+    v.ids.push(r.id);
+    if(r.buyQty!=null) v.buyQty = r.buyQty;
+    if(r.qty!=null) v.reqQty = (v.reqQty||0) + r.qty;
+    [r.note, r.memo].forEach(n => { if(n && !v.notes.includes(n)) v.notes.push(n); });
+    const last = [...(r.log||[])].reverse().find(x => x.s===r.status);
+    if(last && last.note && !v.logs.includes(last.note)) v.logs.push(last.note);
+  });
+  const rows = Object.values(g).sort((a,b)=>a.name.localeCompare(b.name,'ko'));
+  const brs = [...BRANCHES, ...new Set(rows.map(v=>v.branch).filter(b=>!BRANCHES.includes(b)))];
+
+  const btns = v => (ACTIONS[v.status]||[]).filter(a => can(...a[2])).map(a =>
+    `<button class="btn ${a[3]==='primary'?'btn-primary':a[3]==='danger'?'btn-danger':'btn-sec'} btn-sm" data-act="${a[0]}">${a[1]}</button>`).join('');
+  const rowHtml = v => `<div class="off-r" data-ids="${v.ids.join(',')}" data-from="${esc(v.status)}">
+    <div class="n"><b>${esc(v.name)}</b>
+      ${v.spec?`<div class="sub" style="margin:0">요청: ${esc(v.spec)}</div>`:''}
+      ${v.notes.map(n=>`<div class="brk">요청 메모: ${esc(n)}</div>`).join('')}
+      ${v.logs.map(n=>`<div class="brk"><b>${v.status==='반려'?'반려 사유'+(v.stage?'('+esc(v.stage)+' 단계)':''):'메모'}</b> ${esc(n)}</div>`).join('')}</div>
+    <div class="b brk">수량 <b class="num">${qtyOf(v)??'미정'}</b><br>${esc(siteOf(v))}</div>
+    <div class="a" style="flex-wrap:wrap;justify-content:flex-end;min-width:250px"><span class="st ${stCls(v.status)}">${esc(stLabel(v.status))}</span>${btns(v)}</div>
+  </div>`;
+
+  $('#ordBody').innerHTML = rows.length ? brs.map(b => {
+    const list = rows.filter(v => v.branch===b);
+    if(!list.length) return '';
+    const bulk = BULK[ordSt] && can(...FLOW_ROLES[BULK[ordSt]]);
+    const bulkLabel = {pay:'전체 결제 완료', ship:'전체 배송 완료', inspect:'전체 검수 완료'}[BULK[ordSt]];
+    return `<div class="vgrp">
+      <div class="vhead" style="display:flex;align-items:center;gap:6px"><b>${esc(b)}원</b><span class="brk">${list.length}품목</span>
+        ${bulk ? `<button class="btn btn-sec btn-sm" style="margin-left:auto" data-bulk="${BULK[ordSt]}" data-ids="${list.flatMap(v=>v.ids).join(',')}" data-from="${esc(ordSt)}" data-who="${esc(b)}원">${bulkLabel}</button>` : ''}</div>
+      <div class="off-list">${list.map(rowHtml).join('')}</div></div>`;
+  }).join('') : '<div class="empty">이 상태의 건이 없습니다.</div>';
+}
+const FLOW_ROLES = {pay:['payer'], ship:['keeper'], inspect:['keeper']};
+
+async function doAct(act, ids, from, what){
+  const f = FLOW[act];
+  let note = '', to = f.to;
+  if(act==='undo'){
+    to = PREV[from];
+    if(!confirm(`${what}을(를) "${stLabel(to)}" 단계로 되돌립니다.`)) return;
+  }else{
+    note = await askNote({...f.ask, what:`${what} · ${ids.length}건`});
+  }
+  const extra = to==='반려' ? {rejectNote:note, rejectStage:'결제', rejectSeen:false} : {};
+  await safely(async () => {
+    await setStatus(ids, to, note, extra);
+    toast(to==='반려' ? '반려했습니다. 요청자에게 안내됩니다' : stLabel(to)+'(으)로 처리했습니다');
+  });
+}
+$('#ordBr').onchange = renderOrd;
+$('#ordSt').onclick = e => {
+  const b = e.target.closest('.chip'); if(!b) return;
+  ordSt = b.dataset.st; renderOrd();
+};
+$('#ordBody').addEventListener('click', e => {
+  const a = e.target.closest('[data-act]');
+  if(a){
+    const row = a.closest('.off-r');
+    doAct(a.dataset.act, row.dataset.ids.split(','), row.dataset.from, row.querySelector('b').textContent);
+    return;
+  }
+  const k = e.target.closest('[data-bulk]');
+  if(k) doAct(k.dataset.bulk, k.dataset.ids.split(','), k.dataset.from, k.dataset.who);
+});
+
+// ── 요청자 알림: 내 요청이 반려되면 요청 화면 위에 사유와 함께 보인다
+function renderNotices(){
+  const mine = me ? reqs.filter(r => r.by===me.email && r.status==='반려' && !r.rejectSeen) : [];
+  $('#reqBadge').hidden = !mine.length;
+  $('#reqBadge').textContent = mine.length;
+  $('#myNotices').innerHTML = mine.map(r => `<div class="notice" data-id="${r.id}">
+    <div class="t"><b>${esc(r.name)}</b> 요청이 반려되었습니다 <span class="brk">(${esc(r.rejectStage||'구매')} 단계 · ${esc(r.branch)}원${r.spec?' · '+esc(r.spec):''})</span>
+      <div>사유: ${esc(r.rejectNote||'적힌 사유가 없습니다')}</div></div>
+    <button class="btn btn-sec btn-sm" data-seen>확인</button></div>`).join('');
+}
+$('#myNotices').onclick = async e => {
+  const b = e.target.closest('[data-seen]'); if(!b) return;
+  const id = b.closest('.notice').dataset.id;
+  await safely(() => updateDoc(doc(db,'requests',id), {rejectSeen:true}));
+};
 
 // ── 삭제 확인
 let aggArr = [], regIds = [];
