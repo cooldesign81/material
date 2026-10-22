@@ -67,17 +67,20 @@ label{display:block;font-size:12px;font-weight:600;color:var(--text-sub);margin-
 .notice .t{flex:1}
 .badge-count{background:#D92D20;color:#fff;font-size:11px;font-weight:700;border-radius:9px;padding:1px 6px;margin-left:6px}
 /* 사진 크기: body[data-thumb] = S(작게) / M(보통) / L(크게). c=요청 카드, r=목록 줄, o=주문 준비 창 */
-body{--tr:84px;--tt:64px}
-body[data-thumb="S"]{--tr:44px;--tt:44px}
-body[data-thumb="L"]{--tr:128px;--tt:88px}
+body{--tr:84px;--tt:64px;--tc:150px}
+body[data-thumb="S"]{--tr:44px;--tt:44px;--tc:96px}
+body[data-thumb="L"]{--tr:128px;--tt:88px;--tc:210px}
 .thumb{border-radius:6px;object-fit:cover;border:1px solid var(--line);background:#fff;flex:0 0 auto;cursor:zoom-in}
 .thumb.r{width:var(--tr);height:var(--tr)}
 .thumb.o{width:max(36px,calc(var(--tr) * .6));height:max(36px,calc(var(--tr) * .6))}
-.thumb.c{width:56px;height:56px}
-.card-top{display:flex;gap:10px;align-items:flex-start}
-body[data-thumb="M"] .card-top,body[data-thumb="L"] .card-top{flex-direction:column;gap:8px}
-body[data-thumb="M"] .card-top .thumb.c{width:100%;max-width:150px;height:auto;aspect-ratio:1/1}
-body[data-thumb="L"] .card-top .thumb.c{width:100%;max-width:280px;height:auto;aspect-ratio:1/1}
+.thumb.c{width:var(--tc);height:auto;aspect-ratio:1/1;max-width:46%;align-self:flex-start}
+/* 요청 카드: 사진은 왼쪽에 크게, 이름·태그·담기는 오른쪽 */
+.item-in{display:flex;gap:12px;align-items:stretch;flex:1}
+.item-body{flex:1;min-width:0;display:flex;flex-direction:column;gap:6px}
+@media(min-width:769px){
+  body[data-thumb="M"] .grid{grid-template-columns:repeat(auto-fill,minmax(340px,1fr))}
+  body[data-thumb="L"] .grid{grid-template-columns:repeat(auto-fill,minmax(440px,1fr))}
+}
 .seg{display:flex;align-items:center;gap:2px;background:rgba(0,0,0,.08);border-radius:6px;padding:2px}
 .seg .seg-l{padding:0 6px;font-size:12px;font-weight:700}
 .seg button{border:0;background:none;padding:4px 8px;border-radius:4px;font:inherit;font-size:12px;font-weight:700;cursor:pointer;color:var(--ink)}
@@ -674,18 +677,21 @@ function cardHtml(m){
   const op = optsOf(m);
   return `
     <div class="item" data-id="${m.id}">
-      <div class="card-top">${thumbImg(m,'c')}
-        <div style="flex:1;min-width:0"><h4>${esc(m.name)}</h4>
-        ${m.desc?`<div class="sub" style="margin:2px 0 0">${esc(m.desc)}</div>`:''}</div></div>
-      <div class="tags">
-        <span class="badge">${esc(m.cat)}</span>
-        ${chanOf(m)==='해외온라인'?'<span class="badge badge-over">해외</span>':''}
-        ${m.hq?`<span class="badge badge-hq">본사 ${esc(m.hq)}</span>`:''}
-      </div>
-      ${m.spec?`<div class="meta">이전 구매: ${esc(m.spec)}</div>`:''}
-      ${op.length?`<div class="brk">고를 항목: ${op.map(o=>esc(o.label)).join(', ')}</div>`:''}
-      <div class="act">
-        <button class="btn btn-sec btn-sm" style="flex:1">담기</button>
+      <div class="item-in">${thumbImg(m,'c')}
+        <div class="item-body">
+          <h4>${esc(m.name)}</h4>
+          ${m.desc?`<div class="sub" style="margin:0">${esc(m.desc)}</div>`:''}
+          <div class="tags">
+            <span class="badge">${esc(m.cat)}</span>
+            ${chanOf(m)==='해외온라인'?'<span class="badge badge-over">해외</span>':''}
+            ${m.hq?`<span class="badge badge-hq">본사 ${esc(m.hq)}</span>`:''}
+          </div>
+          ${m.spec?`<div class="meta">이전 구매: ${esc(m.spec)}</div>`:''}
+          ${op.length?`<div class="brk">고를 항목: ${op.map(o=>esc(o.label)).join(', ')}</div>`:''}
+          <div class="act">
+            <button class="btn btn-sec btn-sm" style="flex:1">담기</button>
+          </div>
+        </div>
       </div>
     </div>`;
 }
