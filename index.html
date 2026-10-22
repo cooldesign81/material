@@ -89,7 +89,8 @@ table{width:100%;border-collapse:collapse;font-size:13px}
 th{text-align:left;background:var(--slot-navy);color:#fff;font-weight:600;padding:8px 10px;font-size:12px;position:sticky;top:50px}
 td{padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
 #catBody td{white-space:nowrap}
-#catBody td:nth-child(3){white-space:normal;min-width:180px}
+#catBody td:nth-child(3),#catBody td:nth-child(4){white-space:normal}
+#catBody td:nth-child(4){min-width:180px}
 tr:hover td{background:#FAFAFA}
 .right{text-align:right}
 .tbl-wrap{overflow:auto;max-height:calc(100vh - 110px);-webkit-overflow-scrolling:touch;border-radius:var(--r-card);border:1px solid var(--line);background:#fff}
@@ -1462,7 +1463,8 @@ function renderCat(){
   const allOn = list.length && list.every(m => picked.has(m.id));
   const chk = $('#catAll'); if(chk) chk.checked = !!allOn;
   renderBulk();
-  $('#catBody').innerHTML = list.map(m => `<tr data-id="${m.id}">
+  $('#catBody').innerHTML = list.map(m => `<tr data-id="${m.id}"${picked.has(m.id)?' class="sel"':''}>
+    <td><input type="checkbox" data-pick aria-label="${esc(m.name)} 선택" style="width:auto;margin:0"${picked.has(m.id)?' checked':''}></td>
     <td>${esc(m.cat)}</td>
     <td><b>${esc(m.name)}</b>${m.desc?`<div class="brk">${esc(m.desc)}</div>`:''}</td>
     <td>${m.spec ? esc(m.spec) : '<span class="brk">—</span>'}</td>
@@ -1470,7 +1472,7 @@ function renderCat(){
       ${m.vendor?`<div class="brk" style="margin-top:2px">${esc(m.vendor)}</div>`:''}</td>
     <td class="brk">${esc(m.base||'—')}</td>
     <td><button class="btn btn-sec btn-sm" data-hq style="${m.hq?'background:#FBE9D4;border-color:#EBC89C;color:#9A5A08;font-weight:700':''}">${m.hq?esc(m.hq):'—'}</button></td>
-    <td><select data-chan style="padding:3px 4px;font-size:12px">${CHANNELS.map(x=>`<option${x===chanOf(m)?' selected':''}>${esc(x)}</option>`).join('')}</select></td>
+    <td><select data-chan style="padding:3px 4px;font-size:12px;min-width:96px">${CHANNELS.map(x=>`<option${x===chanOf(m)?' selected':''}>${esc(x)}</option>`).join('')}</select></td>
     <td><button class="btn btn-sec btn-sm" data-url style="${m.url?'background:#E7ECF2;border-color:#C7D2DD;color:var(--slot-navy);font-weight:700':''}">${m.url?'확정됨':'검색'}</button></td>
     <td><button class="btn btn-sec btn-sm" data-edit>수정</button></td>
   </tr>`).join('');
