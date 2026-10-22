@@ -1038,7 +1038,6 @@ function renderOrder(){
       <div class="ob-n"><b>${esc(v.name)}</b> ${kb}${!cartAuto(v) && L.kind!=='오프라인' ? ' <span class="badge badge-off">직접 담기</span>' : ''}
         <div class="s">${esc(v.spec)}</div></div>
       <div class="ob-q num">${qtyOf(v)??''}</div>
-      ${qtyOf(v)!=null?`<button class="btn btn-sec btn-sm" data-ocopy="${qtyOf(v)}">수량 복사</button>`:''}
       ${L.u ? `<button class="btn btn-sec btn-sm" data-oone="${esc(L.u)}">열기</button>` : ''}
     </div>`;
   }).join('') || '<div class="empty">이 묶음에는 품목이 없습니다.</div>';
@@ -1058,7 +1057,6 @@ $('#obNext').onclick = () => {
   if(blocked) alert('브라우저가 새 탭 열기를 막았습니다. 주소창 옆 팝업 차단을 이 사이트에 한해 허용해 주세요.');
 };
 $('#obList').onclick = e => {
-  const c = e.target.closest('[data-ocopy]'); if(c){ copyText(c.dataset.ocopy); return; }
   const o = e.target.closest('[data-oone]'); if(o){ window.open(o.dataset.oone, '_blank', 'noopener'); }
 };
 // 내 컴퓨터의 Claude(Chrome 연결)에 붙여넣어 쓰는 지시문. 담기까지만, 결제는 하지 않는다.
