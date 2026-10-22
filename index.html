@@ -109,17 +109,19 @@ tr:hover td{background:#FAFAFA}
 .bulk .sep{width:1px;height:20px;background:rgba(255,255,255,.3)}
 #catBody tr.sel td{background:#FFF7E8}
 #catBody tr.sel:hover td{background:#FFF3DC}
-tr.grp td{background:#EFF2F5;border-top:2px solid var(--slot-navy);padding:10px;font-size:13px}
-tr.sub td{background:#F7F8FA;border-bottom:1px solid var(--line);padding:6px 10px;font-size:12px}
-tr.sub:hover td{background:#F7F8FA}
-tr.sub .site{font-weight:800;color:var(--slot-navy);margin-right:8px}
+tr.grp td{background:#BFD0E4;border-top:3px solid var(--slot-navy);color:var(--ink);padding:12px 10px;font-size:14px}
+tr.grp td:first-child{box-shadow:inset 6px 0 0 var(--slot-navy)}
+tr.sub td{background:#E3EBF5;border-top:1px solid #C3D2E4;border-bottom:1px solid #C3D2E4;padding:8px 10px;font-size:12px}
+tr.sub td:first-child{box-shadow:inset 4px 0 0 #5B80AE}
+tr.sub:hover td{background:#E3EBF5}
+tr.sub .site{display:inline-block;font-weight:800;font-size:13px;color:#fff;background:var(--slot-navy);border-radius:4px;padding:2px 9px;margin-right:8px}
 .badge-fix{background:#E7ECF2;color:#1E3A5F}
 .badge-sea{background:#F1F1F1;color:#767676}
 .vgrp{margin-bottom:24px}
 .vhead{background:var(--slot-navy);color:#fff;padding:8px 12px;border-radius:var(--r-card) var(--r-card) 0 0;font-size:14px}
 .vhead .brk{color:#C3D0DD}
 .vgrp .grid{border:1px solid var(--line);border-top:0;border-radius:0 0 var(--r-card) var(--r-card);padding:12px;background:#fff}
-tr.grp:hover td{background:#EFF2F5}
+tr.grp:hover td{background:#BFD0E4}
 
 /* ── 경고 스트라이프 ── */
 .warn-bar{height:10px;background:repeating-linear-gradient(90deg,var(--warn-yellow) 0 var(--bar),var(--warn-black) var(--bar) calc(var(--bar)*2))}
@@ -270,6 +272,12 @@ tr.grp:hover td{background:#EFF2F5}
         <select id="aBr" style="width:auto"><option value="">전체 원</option><option value="평촌">평촌</option><option value="반포">반포</option><option value="대치">대치</option></select>
         <select id="aCh" style="width:auto"><option value="">온라인·해외온라인 전체</option><option value="온라인">온라인만</option><option value="해외온라인">해외온라인만</option></select>
         <button class="btn btn-sec" id="printBtn">인쇄</button>
+      </div>
+      <div class="bulk" id="aggBulk">
+        <b><span class="num" id="aggBulkN">0</span>품목 선택</b>
+        <button class="btn btn-primary btn-sm" id="aggBulkCart">장바구니 담음</button>
+        <button class="btn btn-danger btn-sm" id="aggBulkRej">반려</button>
+        <button class="btn btn-sec btn-sm" id="aggBulkClear" style="margin-left:auto">선택 해제</button>
       </div>
       <p class="scroll-note" id="aggNote">표를 옆으로 밀면 나머지 열이 보입니다.</p>
       <div class="tbl-wrap"><table id="aggTbl"><thead id="aggHead"></thead><tbody id="aggBody"></tbody></table></div>
@@ -887,6 +895,25 @@ function itemCell(v){
       <div style="margin-top:4px"><button class="btn btn-sec btn-sm" data-reg="${v.gi}">정식 품목으로 등록</button></div>
     </div>`:''}`;
 }
+// 모아보기 선택(체크) 상태: 요청 id 기준이라 화면이 다시 그려져도 유지된다
+const aggPicked = new Set();
+const chkCell = v => `<input type="checkbox" data-chk aria-label="${esc(v.name)} 선택" style="width:auto;margin:0"${v.ids.every(i=>aggPicked.has(i))?' checked':''}${can('buyer')?'':' disabled'}>`;
+const grpChk = ids => `<input type="checkbox" data-chkgrp data-gids="${ids.join(',')}" aria-label="묶음 전체 선택" style="width:auto;margin:0"${can('buyer')?'':' disabled'}>`;
+function pickedIds(){ return aggArr.flatMap(([,v])=>v.ids).filter(i=>aggPicked.has(i)); }
+function syncAggChecks(){
+  $('#aggBody').querySelectorAll('tr[data-ids]').forEach(tr => {
+    const c = tr.querySelector('[data-chk]'); if(c) c.checked = tr.dataset.ids.split(',').every(i=>aggPicked.has(i));
+  });
+  $('#aggBody').querySelectorAll('[data-chkgrp]').forEach(c => {
+    const ids = c.dataset.gids.split(','); c.checked = ids.length>0 && ids.every(i=>aggPicked.has(i));
+  });
+  const all = $('#aggAll');
+  if(all){ const ids = aggArr.flatMap(([,v])=>v.ids); all.checked = ids.length>0 && ids.every(i=>aggPicked.has(i)); }
+  const n = aggArr.filter(([,v])=>v.ids.every(i=>aggPicked.has(i))).length;
+  $('#aggBulk').className = (n && can('buyer')) ? 'bulk on' : 'bulk';
+  $('#aggBulkN').textContent = n;
+}
+
 // 수량만 입력할 수 있다. 구매 규격·기준단가는 품목관리에 적힌 대로 보여 주기만 한다.
 function actCells(v){
   const m = metaV(v), buy = can('buyer');
@@ -919,6 +946,10 @@ function renderAgg(){
   });
   aggArr = Object.entries(g).sort((a,b)=>a[1].name.localeCompare(b[1].name,'ko'));
   aggArr.forEach(([,v],i)=> v.gi = i);
+  // 화면에 없는 건(필터·처리로 사라진 것)은 선택에서 뺀다
+  const live = new Set(aggArr.flatMap(([,v])=>v.ids));
+  [...aggPicked].forEach(i => { if(!live.has(i)) aggPicked.delete(i); });
+  const allChk = `<input type="checkbox" id="aggAll" aria-label="전체 선택" style="width:auto;margin:0"${can('buyer')?'':' disabled'}>`;
 
   const brTxt = v => Object.entries(v.br).map(([b,q])=> q ? `${esc(b)} <b class="num">${q}</b>` : esc(b)).join(' · ');
 
@@ -932,7 +963,7 @@ function renderAgg(){
       <div class="box"><div class="k">${esc(b)}원</div><div class="v num">${p.n}</div><div class="brk">요청 대기 품목</div></div>`).join('') +
       `<div class="box"><div class="k">전체</div><div class="v num">${aggArr.length}</div><div class="brk">요청 대기 품목</div></div>`;
 
-    $('#aggHead').innerHTML = `<tr><th style="width:36%">품목</th><th class="right" style="width:10%">수량</th>
+    $('#aggHead').innerHTML = `<tr><th style="width:36px">${allChk}</th><th style="width:34%">품목</th><th class="right" style="width:10%">수량</th>
       <th style="width:26%">구매 규격</th><th style="width:14%">기준단가</th><th style="width:14%">처리</th></tr>`;
 
     const bySite = list => {
@@ -941,9 +972,9 @@ function renderAgg(){
       return SITE_ORDER.filter(st => o[st]).map(st => [st, o[st]])
         .concat(Object.keys(o).filter(st=>!SITE_ORDER.includes(st)).map(st=>[st,o[st]]));
     };
-    const rowsOf = list => list.map(([,v])=>`<tr data-ids="${v.ids.join(',')}"><td>${itemCell(v)}</td>${actCells(v)}</tr>`).join('');
+    const rowsOf = list => list.map(([,v])=>`<tr data-ids="${v.ids.join(',')}"><td>${chkCell(v)}</td><td>${itemCell(v)}</td>${actCells(v)}</tr>`).join('');
     const siteRows = (list, scope) => bySite(list).map(([st, items]) => {
-      return `<tr class="sub"><td colspan="5"><span class="site">${esc(st)}</span>
+      return `<tr class="sub"><td>${grpChk(items.flatMap(([,v])=>v.ids))}</td><td colspan="5"><span class="site">${esc(st)}</span>
         <span class="brk">${items.length}품목</span>
         <button class="btn btn-sec btn-sm" style="float:right" data-order="${esc(scope)}|${esc(st)}">주문 준비</button></td></tr>`
         + rowsOf(items);
@@ -955,12 +986,13 @@ function renderAgg(){
       const list = aggArr.filter(([,v])=>v.branch===b);
       if(!list.length) return;
       const p = per[b];
-      html += `<tr class="grp"><td colspan="5"><b>${esc(b)}원</b>
+      html += `<tr class="grp"><td>${grpChk(list.flatMap(([,v])=>v.ids))}</td><td colspan="5"><b>${esc(b)}원</b>
         <span class="brk"> ${p.n}품목 — 이 원으로 직접 배송</span>
         <button class="btn btn-sec btn-sm" style="float:right" data-order="${esc(b)}|*">전체 주문 준비</button></td></tr>`;
       html += siteRows(list, b);
     });
-    $('#aggBody').innerHTML = html || '<tr><td colspan="5"><div class="empty">요청 대기 중인 건이 없습니다.</div></td></tr>';
+    $('#aggBody').innerHTML = html || '<tr><td colspan="6"><div class="empty">요청 대기 중인 건이 없습니다.</div></td></tr>';
+    syncAggChecks();
     return;
   }
 
@@ -969,13 +1001,14 @@ function renderAgg(){
     <div class="box"><div class="k">품목 수</div><div class="v num">${aggArr.length}</div><div class="brk">요청 대기</div></div>
     <div class="box"><div class="k">2개 원 이상 요청</div><div class="v num">${aggArr.filter(([,v])=>Object.keys(v.br).length>1).length}</div></div>`;
 
-  $('#aggHead').innerHTML = `<tr><th style="width:28%">품목</th><th style="width:14%">요청한 원</th>
+  $('#aggHead').innerHTML = `<tr><th style="width:36px">${allChk}</th><th style="width:26%">품목</th><th style="width:14%">요청한 원</th>
     <th class="right" style="width:9%">수량</th><th style="width:25%">구매 규격</th><th style="width:12%">기준단가</th>
     <th style="width:12%">처리</th></tr>`;
 
   $('#aggBody').innerHTML = aggArr.length ? aggArr.map(([,v])=>`<tr data-ids="${v.ids.join(',')}">
-    <td>${itemCell(v)}</td><td class="brk">${brTxt(v)}</td>${actCells(v)}</tr>`).join('')
-    : '<tr><td colspan="6"><div class="empty">요청 대기 중인 건이 없습니다.</div></td></tr>';
+    <td>${chkCell(v)}</td><td>${itemCell(v)}</td><td class="brk">${brTxt(v)}</td>${actCells(v)}</tr>`).join('')
+    : '<tr><td colspan="7"><div class="empty">요청 대기 중인 건이 없습니다.</div></td></tr>';
+  syncAggChecks();
 }
 $('#aggBody').addEventListener('focusout', () => setTimeout(() => {
   if(!$('#aggBody').contains(document.activeElement)) renderAgg();
@@ -1151,7 +1184,34 @@ $('#aggBody').addEventListener('click', e => {
   $('#newModal').classList.add('on');
 });
 
+// 체크 / 일괄 처리
+const setPicked = (ids, on) => ids.forEach(i => on ? aggPicked.add(i) : aggPicked.delete(i));
+$('#aggBody').addEventListener('change', e => {
+  if(e.target.matches('[data-chk]')) setPicked(e.target.closest('tr').dataset.ids.split(','), e.target.checked);
+  else if(e.target.matches('[data-chkgrp]')) setPicked(e.target.dataset.gids.split(','), e.target.checked);
+  else return;
+  syncAggChecks();
+});
+$('#aggHead').addEventListener('change', e => {
+  if(!e.target.matches('#aggAll')) return;
+  setPicked(aggArr.flatMap(([,v])=>v.ids), e.target.checked);
+  syncAggChecks();
+});
+$('#aggBulkClear').onclick = () => { aggPicked.clear(); syncAggChecks(); };
+$('#aggBulkCart').onclick = async () => {
+  const ids = pickedIds(); if(!ids.length) return;
+  const n = $('#aggBulkN').textContent;
+  if(!confirm(`선택한 ${n}품목을 장바구니에 담은 것으로 표시하고 주문관리로 넘깁니다. 실제로 담은 뒤에 눌러 주세요.`)) return;
+  await safely(async () => { await setStatus(ids, '장바구니'); aggPicked.clear(); toast('주문관리로 넘겼습니다'); });
+};
+$('#aggBulkRej').onclick = async () => {
+  const ids = pickedIds(); if(!ids.length) return;
+  const note = await askNote({title:'선택한 요청 반려', what:`${$('#aggBulkN').textContent}품목 · ${ids.length}건`, label:'반려 사유',
+    placeholder:'요청자에게 안내됩니다. 선택한 모두에 같은 사유가 적용됩니다', required:true, ok:'반려하기', danger:true});
+  await safely(async () => { await setStatus(ids, '반려', note, {rejectNote:note, rejectStage:'구매', rejectSeen:false}); aggPicked.clear(); toast('반려했습니다. 요청자에게 안내됩니다'); });
+};
 $('#aggBody').addEventListener('change', async e => {
+  if(!e.target.closest('tr') || !e.target.closest('tr').dataset.ids) return;
   const tr = e.target.closest('tr'); const ids = tr.dataset.ids.split(',');
   if(e.target.matches('[data-qty]')){
     const v = e.target.value===''?null:Number(e.target.value);
