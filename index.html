@@ -66,6 +66,13 @@ label{display:block;font-size:12px;font-weight:600;color:var(--text-sub);margin-
 .notice{background:#FFF4F3;border:1px solid #F3C4C0;border-radius:var(--r-card);padding:12px 14px;margin-bottom:8px;display:flex;gap:12px;align-items:flex-start}
 .notice .t{flex:1}
 .badge-count{background:#D92D20;color:#fff;font-size:11px;font-weight:700;border-radius:9px;padding:1px 6px;margin-left:6px}
+.thumb{width:44px;height:44px;border-radius:6px;object-fit:cover;border:1px solid var(--line);background:#fff;flex:0 0 auto;cursor:zoom-in}
+.thumb-btn{width:44px;height:44px;border:1px dashed #BFBFBF;border-radius:6px;background:#fff;color:var(--text-sub);cursor:pointer;padding:0;overflow:hidden;font-size:18px;line-height:1}
+.thumb-btn img{width:100%;height:100%;object-fit:cover;display:block}
+.drop{display:flex;align-items:center;gap:12px;border:2px dashed #CFCFCF;border-radius:8px;padding:10px;background:#FAFAFA}
+.drop.over{border-color:var(--brand-orange);background:#FFF7E8}
+.drop img{width:96px;height:96px;object-fit:contain;border:1px solid var(--line);border-radius:6px;background:#fff;flex:0 0 auto}
+.drop .ph{width:96px;height:96px;border:1px solid var(--line);border-radius:6px;background:#fff;color:#BFBFBF;display:flex;align-items:center;justify-content:center;font-size:30px;flex:0 0 auto}
 .opt-grp{margin-top:12px}
 .opt-grp .chips{margin-bottom:0}
 .cart-note{margin-top:6px;padding:5px 8px;font-size:12px}
@@ -89,8 +96,8 @@ table{width:100%;border-collapse:collapse;font-size:13px}
 th{text-align:left;background:var(--slot-navy);color:#fff;font-weight:600;padding:8px 10px;font-size:12px;position:sticky;top:50px}
 td{padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
 #catBody td{white-space:nowrap}
-#catBody td:nth-child(3),#catBody td:nth-child(4){white-space:normal}
-#catBody td:nth-child(4){min-width:180px}
+#catBody td:nth-child(4),#catBody td:nth-child(5){white-space:normal}
+#catBody td:nth-child(5){min-width:180px}
 tr:hover td{background:#FAFAFA}
 .right{text-align:right}
 .tbl-wrap{overflow:auto;max-height:calc(100vh - 110px);-webkit-overflow-scrolling:touch;border-radius:var(--r-card);border:1px solid var(--line);background:#fff}
@@ -301,7 +308,7 @@ tr.grp:hover td{background:#BFD0E4}
   <section id="tab-cat" hidden>
     <div class="sect">
       <h2>품목관리</h2>
-      <p class="sub">마스터 품목 <span class="num" id="catN">0</span>건 중 <span class="num" id="catShown">0</span>건 표시. <b>구매경로</b>는 온라인·해외온라인·거래처·본사 중 하나이고, 모아보기에는 온라인과 해외온라인만 나옵니다. <b>규격</b>은 참고용 이전 구매 기록이며, 요청할 때 입력하지 않아도 됩니다. 색상·굵기처럼 요청자가 골라야 하는 항목은 <b>수정</b>의 세부 선택에서 정합니다. <b>구매처</b>를 지정하면 모아보기에서 구매처별로 묶여 한꺼번에 주문할 수 있습니다. <b>본사월</b>은 본사에서 받아야 하는 달입니다. 해마다 바뀌니 연초에 일괄로 다시 지정하세요. <b>상품주소</b>는 기본이 네이버쇼핑 검색입니다. 늘 같은 상품을 산다면 등록해서 확정해 두세요.</p>
+      <p class="sub">마스터 품목 <span class="num" id="catN">0</span>건 중 <span class="num" id="catShown">0</span>건 표시. <b>사진</b> 칸(+)을 누르면 썸네일을 넣을 수 있고, 복사한 이미지를 <b>Ctrl + V</b>로 붙여넣어도 됩니다. <b>구매경로</b>는 온라인·해외온라인·거래처·본사 중 하나이고, 모아보기에는 온라인과 해외온라인만 나옵니다. <b>규격</b>은 참고용 이전 구매 기록이며, 요청할 때 입력하지 않아도 됩니다. 색상·굵기처럼 요청자가 골라야 하는 항목은 <b>수정</b>의 세부 선택에서 정합니다. <b>구매처</b>를 지정하면 모아보기에서 구매처별로 묶여 한꺼번에 주문할 수 있습니다. <b>본사월</b>은 본사에서 받아야 하는 달입니다. 해마다 바뀌니 연초에 일괄로 다시 지정하세요. <b>상품주소</b>는 기본이 네이버쇼핑 검색입니다. 늘 같은 상품을 산다면 등록해서 확정해 두세요.</p>
       <div class="filters">
         <input id="cq" placeholder="품목 검색">
         <button class="btn btn-primary" id="addBtn">새 품목 추가</button>
@@ -329,7 +336,7 @@ tr.grp:hover td{background:#BFD0E4}
       <p class="scroll-note" id="catNote">표를 옆으로 밀면 나머지 열이 보입니다.</p>
       <div class="tbl-wrap wide"><table><thead><tr>
         <th style="width:36px"><input type="checkbox" id="catAll" aria-label="전체 선택" style="width:auto;margin:0"></th>
-        <th style="width:11%">분류</th><th style="width:21%">품목명</th><th style="width:22%">참고 규격</th>
+        <th style="width:56px">사진</th><th style="width:10%">분류</th><th style="width:21%">품목명</th><th style="width:22%">참고 규격</th>
         <th style="width:15%">구매처</th><th style="width:11%">기준단가</th><th style="width:8%">본사월</th><th style="width:9%">구매경로</th><th style="width:9%">상품주소</th><th style="width:10%"></th>
       </tr></thead><tbody id="catBody"></tbody></table></div>
     </div>
@@ -353,7 +360,17 @@ tr.grp:hover td{background:#BFD0E4}
 <div class="modal" id="editModal"><div class="modal-box">
   <div class="modal-head"><span>품목 수정</span><button data-close>&times;</button></div>
   <div class="modal-body">
-    <label for="eName">품목명</label><input id="eName" placeholder="어떤 물건인지 바로 알 수 있는 이름">
+    <label>썸네일 (선택)</label>
+    <div class="drop" id="eThumbBox">
+      <img id="eThumbImg" alt="" hidden><div class="ph" id="eThumbPh">+</div>
+      <div style="flex:1;min-width:0">
+        <div class="sub" style="margin:0 0 6px"><b>Ctrl + V</b>로 복사한 이미지를 붙여넣거나, 이미지를 끌어다 놓거나, 파일을 고르세요.</div>
+        <button type="button" class="btn btn-sec btn-sm" id="eThumbPick">파일 선택</button>
+        <button type="button" class="btn btn-sec btn-sm" id="eThumbDel" hidden>사진 삭제</button>
+        <input type="file" id="eFile" accept="image/*" hidden>
+      </div>
+    </div>
+    <label for="eName" style="margin-top:12px">품목명</label><input id="eName" placeholder="어떤 물건인지 바로 알 수 있는 이름">
     <label for="eDesc" style="margin-top:12px">설명 (선택)</label>
     <input id="eDesc" placeholder="예: 공예용 알루미늄 판재 (얇은 금속판)">
     <label for="eSpec" style="margin-top:12px">참고 규격 (선택)</label>
@@ -363,6 +380,12 @@ tr.grp:hover td{background:#BFD0E4}
     <p class="sub" style="margin:4px 0 0">'항목: 선택지, 선택지' 형식입니다. 콜론 뒤를 비우면 요청자가 직접 적는 칸이 됩니다. 전부 지우면 세부 선택이 없어집니다.</p>
   </div>
   <div class="modal-foot"><button class="btn btn-sec" data-close>취소</button><button class="btn btn-primary" id="eOk">저장</button></div>
+</div></div>
+
+<!-- 사진 확대 -->
+<div class="modal" id="zoomModal"><div class="modal-box" style="max-width:280px">
+  <div class="modal-head"><span id="zoomName">사진</span><button data-close>&times;</button></div>
+  <div class="modal-body" style="text-align:center"><img id="zoomImg" alt="" style="max-width:100%;border-radius:6px"></div>
 </div></div>
 
 <!-- 목록에 없는 재료 요청 -->
@@ -501,6 +524,27 @@ const chanOf = m => m.chan || (m.site==='본사' ? '본사'
   : OFFLINE_SITES.includes(m.site||'미지정') ? '거래처' : '온라인');
 const isOff = m => ['거래처','본사'].includes(chanOf(m));
 
+// ── 썸네일: 200×200 JPEG(약 10KB)로 줄여서 품목 데이터(thumb)에 함께 저장한다.
+// 별도 저장소(Firebase Storage) 설정 없이 지금 구성 그대로 쓸 수 있다.
+const THUMB = 200;
+function toThumb(file){
+  return new Promise((res, rej) => {
+    const url = URL.createObjectURL(file), img = new Image();
+    img.onload = () => {
+      const c = document.createElement('canvas'); c.width = c.height = THUMB;
+      const x = c.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0,0,THUMB,THUMB);
+      const k = Math.min(THUMB/img.width, THUMB/img.height), w = img.width*k, h = img.height*k;
+      x.drawImage(img, (THUMB-w)/2, (THUMB-h)/2, w, h);
+      URL.revokeObjectURL(url);
+      res(c.toDataURL('image/jpeg', 0.82));
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); rej(new Error('이미지를 읽지 못했습니다')); };
+    img.src = url;
+  });
+}
+const thumbImg = (m, size=44) => (m && m.thumb)
+  ? `<img class="thumb" src="${m.thumb}" alt="${esc(m.name||'')}" style="width:${size}px;height:${size}px" loading="lazy">` : '';
+
 // 역할별 권한. 이메일을 적으면 그 사람에게만 해당 버튼이 보이고, 비워 두면 로그인한 모두에게 보인다.
 //   buyer  : 모아보기에서 수량 입력·장바구니 처리·반려 (구매 담당자)
 //   payer  : 주문관리에서 결제 완료·반려 (결제 권한자)
@@ -596,8 +640,9 @@ function cardHtml(m){
   const op = optsOf(m);
   return `
     <div class="item" data-id="${m.id}">
-      <h4>${esc(m.name)}</h4>
-      ${m.desc?`<div class="sub" style="margin:0 0 4px">${esc(m.desc)}</div>`:''}
+      <div style="display:flex;gap:10px;align-items:flex-start">${thumbImg(m,56)}
+        <div style="flex:1;min-width:0"><h4>${esc(m.name)}</h4>
+        ${m.desc?`<div class="sub" style="margin:2px 0 0">${esc(m.desc)}</div>`:''}</div></div>
       <div class="tags">
         <span class="badge">${esc(m.cat)}</span>
         ${chanOf(m)==='해외온라인'?'<span class="badge badge-over">해외</span>':''}
@@ -883,7 +928,7 @@ const qtyOf = v => v.buyQty!=null ? v.buyQty : v.reqQty;
 
 function itemCell(v){
   const m = metaV(v);
-  return `<b>${esc(v.name)}</b>${reqChan({itemId:v.itemId, chan:v.chan, ch:v.ch})==='해외온라인'?' <span class="badge badge-over">해외</span>':''}
+  return `<div style="display:flex;gap:10px;align-items:flex-start">${thumbImg(m,44)}<div style="min-width:0"><b>${esc(v.name)}</b>${reqChan({itemId:v.itemId, chan:v.chan, ch:v.ch})==='해외온라인'?' <span class="badge badge-over">해외</span>':''}
     ${v.spec?`<div class="sub" style="margin:0">요청: ${esc(v.spec)}</div>`:''}
     ${v.notes.map(n=>`<div class="brk">메모: ${esc(n)}</div>`).join('')}
     ${m.vendor?`<div class="brk">${esc(m.vendor)}</div>`:''}
@@ -893,7 +938,7 @@ function itemCell(v){
       ${v.why?`<span class="brk"> ${esc(v.why)}</span>`:''}
       ${v.refUrl?` <a class="brk" href="${esc(v.refUrl)}" target="_blank" rel="noopener">참고 링크</a>`:''}
       <div style="margin-top:4px"><button class="btn btn-sec btn-sm" data-reg="${v.gi}">정식 품목으로 등록</button></div>
-    </div>`:''}`;
+    </div>`:''}</div></div>`;
 }
 // 모아보기 선택(체크) 상태: 요청 id 기준이라 화면이 다시 그려져도 유지된다
 const aggPicked = new Set();
@@ -1068,6 +1113,7 @@ function renderOrder(){
              : L.kind==='오프라인' ? '<span class="badge badge-off">오프라인</span>'
              : '<span class="badge badge-sea">검색</span>';
     return `<div class="ob-r${i<orderIdx?' done':''}">
+      ${thumbImg(metaV(v),36)}
       <div class="ob-n"><b>${esc(v.name)}</b> ${kb}${!cartAuto(v) && L.kind!=='오프라인' ? ' <span class="badge badge-off">직접 담기</span>' : ''}
         <div class="s">${esc(v.spec)}</div></div>
       <div class="ob-q num">${qtyOf(v)??''}</div>
@@ -1353,6 +1399,7 @@ function renderOrd(){
   const btns = v => (ACTIONS[v.status]||[]).filter(a => can(...a[2])).map(a =>
     `<button class="btn ${a[3]==='primary'?'btn-primary':a[3]==='danger'?'btn-danger':'btn-sec'} btn-sm" data-act="${a[0]}">${a[1]}</button>`).join('');
   const rowHtml = v => `<div class="off-r" data-ids="${v.ids.join(',')}" data-from="${esc(v.status)}">
+    ${thumbImg(metaV(v),44)}
     <div class="n"><b>${esc(v.name)}</b>
       ${v.spec?`<div class="sub" style="margin:0">요청: ${esc(v.spec)}</div>`:''}
       ${v.notes.map(n=>`<div class="brk">요청 메모: ${esc(n)}</div>`).join('')}
@@ -1539,6 +1586,7 @@ function renderCat(){
   renderBulk();
   $('#catBody').innerHTML = list.map(m => `<tr data-id="${m.id}"${picked.has(m.id)?' class="sel"':''}>
     <td><input type="checkbox" data-pick aria-label="${esc(m.name)} 선택" style="width:auto;margin:0"${picked.has(m.id)?' checked':''}></td>
+    <td><button type="button" class="thumb-btn" data-thumb title="사진 넣기·바꾸기" aria-label="${esc(m.name)} 사진">${m.thumb?`<img src="${m.thumb}" alt="" loading="lazy">`:'+'}</button></td>
     <td>${esc(m.cat)}</td>
     <td><b>${esc(m.name)}</b>${m.desc?`<div class="brk">${esc(m.desc)}</div>`:''}</td>
     <td>${m.spec ? esc(m.spec) : '<span class="brk">—</span>'}</td>
@@ -1583,13 +1631,44 @@ $('#catBody').onclick = async e => {
     await setDoc(doc(db,'materials',id), {...m, url:v.trim(), updatedBy:me.email});
     return;
   }
-  if(!e.target.matches('[data-edit]')) return;
+  if(!e.target.closest('[data-edit],[data-thumb]')) return;
   editId = id;
   $('#eName').value = m.name; $('#eDesc').value = m.desc||''; $('#eSpec').value = m.spec||'';
   $('#eOpts').value = optsToText(optsOf(m));
+  eThumb = undefined; showEThumb(m.thumb);
   $('#editModal').classList.add('on');
   $('#eName').focus();
 };
+
+// 수정 창의 썸네일: 붙여넣기(Ctrl+V) / 끌어다 놓기 / 파일 선택. undefined=변경 없음, ''=삭제
+let eThumb;
+function showEThumb(src){
+  $('#eThumbImg').src = src || ''; $('#eThumbImg').hidden = !src;
+  $('#eThumbPh').hidden = !!src; $('#eThumbDel').hidden = !src;
+}
+async function setEThumb(file){
+  if(!file) return;
+  if(!/^image\//.test(file.type)){ toast('이미지 파일만 넣을 수 있습니다'); return; }
+  if(file.size > 20*1024*1024){ toast('파일이 너무 큽니다(20MB 이하)'); return; }
+  try{ eThumb = await toThumb(file); showEThumb(eThumb); }
+  catch(err){ alert('이미지를 읽지 못했습니다. 다른 이미지로 시도해 주세요.'); }
+}
+$('#eThumbPick').onclick = () => $('#eFile').click();
+$('#eFile').onchange = e => { setEThumb(e.target.files[0]); e.target.value = ''; };
+$('#eThumbDel').onclick = () => { eThumb = ''; showEThumb(''); };
+const box = $('#eThumbBox');
+['dragenter','dragover'].forEach(t => box.addEventListener(t, e => { e.preventDefault(); box.classList.add('over'); }));
+['dragleave','drop'].forEach(t => box.addEventListener(t, e => { e.preventDefault(); box.classList.remove('over'); }));
+box.addEventListener('drop', e => setEThumb([...e.dataTransfer.files].find(f => /^image\//.test(f.type))));
+// 수정 창이 열려 있을 때 클립보드의 이미지를 붙여넣는다. 글자 붙여넣기는 그대로 둔다.
+document.addEventListener('paste', e => {
+  if(!$('#editModal').classList.contains('on')) return;
+  const cd = e.clipboardData; if(!cd) return;
+  const f = [...cd.files].find(x => /^image\//.test(x.type))
+    || [...cd.items].filter(i => i.kind==='file' && /^image\//.test(i.type)).map(i => i.getAsFile())[0];
+  if(!f) return;
+  e.preventDefault(); setEThumb(f);
+});
 
 // 세부 선택 항목 ↔ 글: 한 줄에 '항목: 선택지, 선택지'. 콜론 뒤가 비면 직접 적는 칸.
 let editId = '';
@@ -1607,6 +1686,7 @@ $('#eOk').onclick = async () => {
   const name = $('#eName').value.trim();
   if(!name){ $('#eName').focus(); return; }
   const data = {name, desc:$('#eDesc').value.trim(), spec:$('#eSpec').value.trim(), updatedBy:me.email};
+  if(eThumb !== undefined) data.thumb = eThumb;
   const txt = $('#eOpts').value.trim();
   if(txt !== optsToText(optsOf(m)).trim()) data.opts = parseOpts(txt);
   if(name !== m.name) data.surl = 'https://search.shopping.naver.com/search/all?query=' + encodeURIComponent(name);
@@ -1637,6 +1717,13 @@ $('#nOk').onclick = async () => {
   ['#nName','#nSpec','#nVendor','#nUrl'].forEach(s=>$(s).value='');
   $('#newModal').classList.remove('on');
 };
+
+// ── 사진을 누르면 크게 보기
+document.addEventListener('click', e => {
+  const im = e.target.closest('img.thumb'); if(!im) return;
+  $('#zoomImg').src = im.src; $('#zoomName').textContent = im.alt || '사진';
+  $('#zoomModal').classList.add('on');
+});
 
 // ── 모달 닫기
 function updateScrollNotes(){
