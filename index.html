@@ -2316,7 +2316,7 @@ function renderAcc(msg){
   if(!me) return say('로그인이 필요합니다.');
   if(!vaultLoaded) return say('불러오는 중…');
   if(vaultError) return say(vaultError==='permission-denied'
-    ? 'Firebase 보안 규칙이 계정관리 저장소(vault)를 막고 있습니다. 규칙에서 로그인한 사용자가 vault를 읽고 쓸 수 있도록 허용해 주세요.'
+    ? '이 계정은 계정관리를 열 수 없습니다. 최고관리자가 People 앱 설정에서 재료 관리자로 지정한 구글 계정만 쓸 수 있습니다. (지정돼 있는데도 막힌다면 FIRESTORE_RULES.md 의 보안 규칙이 게시됐는지 확인하세요.)'
     : '계정 정보를 불러오지 못했습니다. 잠시 뒤 다시 시도해 주세요. (' + vaultError + ')');
   if(!vault){ $('#asErr').textContent = msg || ''; return only('accSetup'); }
   if(!vaultKey){ $('#alErr').textContent = msg || ''; only('accLock'); return; }
