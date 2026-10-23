@@ -1033,10 +1033,16 @@ const SITE_SEARCH = {
   '알리익스프레스':'https://ko.aliexpress.com/wholesale?SearchText=',
   '테무':'https://www.temu.com/search_result.html?search_key='
 };
-const SITE_ORDER = ['네이버','쿠팡','11번가','G마켓','옥션','알리익스프레스','테무','핸즈코리아','기타','미지정','본사','대성 우드락','은성지관','클레이 거래처','오프라인'];
+// 구매처 선택 목록(이 순서로 보인다). 목록에 없는 값(예전 데이터)은 그 품목에서만 그대로 남겨 두고, 새로 고를 수는 없다.
+const SITE_ORDER = ['네이버','쿠팡','도매핸즈','핸즈코리아','11번가','안박스','박스바다','알리익스프레스','테무','기타'];
+const siteOptions = cur => (cur && !SITE_ORDER.includes(cur) ? [...SITE_ORDER, cur] : SITE_ORDER)
+  .map(x => `<option${x===cur?' selected':''}>${esc(x)}</option>`).join('');
 
 const siteOf = v => metaV(v).site || '미지정';
 function searchUrl(m){
+  // 검색 주소를 아는 쇼핑몰은 그곳 검색으로, 모르는 구매처(도매핸즈·핸즈코리아·안박스·박스바다)는 구글에서 '구매처 품목명'으로 찾는다
+  if(!SITE_SEARCH[m.site] && SITE_ORDER.includes(m.site) && m.site!=='기타')
+    return 'https://www.google.com/search?q=' + encodeURIComponent(m.site + ' ' + (m.name||''));
   const base = SITE_SEARCH[m.site] || SITE_SEARCH['네이버'];
   const q = (m.surl||'').split('query=')[1] || encodeURIComponent(m.name||'');
   return base + q;
@@ -2011,7 +2017,7 @@ function renderCat(){
     <td><b>${esc(m.name)}</b>${m.desc?`<div class="brk">${esc(m.desc)}</div>`:''}</td>
     <td>${m.assignee?`<span class="badge">${esc(m.assignee)}</span>`:'<span class="brk">—</span>'}</td>
     <td>${m.spec ? esc(m.spec) : '<span class="brk">—</span>'}</td>
-    <td><select data-site style="padding:3px 4px;font-size:12px">${SITE_ORDER.map(x=>`<option${x===(m.site||'미지정')?' selected':''}>${esc(x)}</option>`).join('')}</select>
+    <td><select data-site style="padding:3px 4px;font-size:12px">${siteOptions(m.site||'미지정')}</select>
       ${m.vendor?`<div class="brk" style="margin-top:2px">${esc(m.vendor)}</div>`:''}</td>
     <td class="brk">${esc(m.base||'—')}</td>
     <td><button class="btn btn-sec btn-sm" data-hq style="${m.hq?'background:#FBE9D4;border-color:#EBC89C;color:#9A5A08;font-weight:700':''}">${m.hq?esc(m.hq):'—'}</button></td>
@@ -2127,7 +2133,7 @@ $('#eOk').onclick = async () => {
 };
 
 $('#nCat').innerHTML = CATS.map(c=>`<option>${esc(c)}</option>`).join('');
-$('#bulkSite').innerHTML = SITE_ORDER.map(x=>`<option>${esc(x)}</option>`).join('');
+$('#bulkSite').innerHTML = SITE_ORDER.map(x=>`<option>${esc(x)}</option>`).join('');   // 새로 고를 수 있는 구매처만
 $('#bulkChan').innerHTML = CHANNELS.map(x=>`<option>${esc(x)}</option>`).join('');
 $('#addBtn').onclick = () => $('#newModal').classList.add('on');
 $('#nOk').onclick = async () => {
