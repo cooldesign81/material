@@ -64,6 +64,9 @@ label{display:block;font-size:12px;font-weight:600;color:var(--text-sub);margin-
 .off-list{border:1px solid var(--line);border-top:0;border-radius:0 0 var(--r-card) var(--r-card);overflow:hidden}
 .st-rej{background:#FBE3E3;color:#B42318}
 .st-gray{background:#EEE;color:#666}
+.bar{width:100%;height:8px;background:#E6E6E6;border-radius:4px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--brand-orange)}
+.chkl{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:500;color:var(--text);margin:8px 0 0}
 .hf{display:flex;flex-wrap:wrap;gap:8px;align-items:flex-end;margin-bottom:10px}
 .hf>div{min-width:120px}
 .hf input,.hf select{width:auto;min-width:120px}
@@ -118,8 +121,9 @@ table{width:100%;border-collapse:collapse;font-size:13px}
 th{text-align:left;background:var(--slot-navy);color:#fff;font-weight:600;padding:8px 10px;font-size:12px;position:sticky;top:50px}
 td{padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
 #catBody td{white-space:nowrap}
-#catBody td:nth-child(4),#catBody td:nth-child(5){white-space:normal}
-#catBody td:nth-child(5){min-width:180px}
+#catBody td:nth-child(5),#catBody td:nth-child(7){white-space:normal}
+#catBody td:nth-child(5){min-width:130px}
+#catBody td:nth-child(7){min-width:170px}
 tr:hover td{background:#FAFAFA}
 .right{text-align:right}
 .tbl-wrap{overflow:auto;max-height:calc(100vh - 110px);-webkit-overflow-scrolling:touch;border-radius:var(--r-card);border:1px solid var(--line);background:#fff}
@@ -337,20 +341,35 @@ tr.grp:hover td{background:#BFD0E4}
       <h2>품목관리</h2>
       <p class="sub">마스터 품목 <span class="num" id="catN">0</span>건 중 <span class="num" id="catShown">0</span>건 표시. <b>사진</b> 칸(+)을 누르면 썸네일을 넣을 수 있고, 복사한 이미지를 <b>Ctrl + V</b>로 붙여넣어도 됩니다. <b>구매경로</b>는 온라인·해외온라인·거래처·본사 중 하나이고, 모아보기에는 온라인과 해외온라인만 나옵니다. <b>규격</b>은 참고용 이전 구매 기록이며, 요청할 때 입력하지 않아도 됩니다. 색상·굵기처럼 요청자가 골라야 하는 항목은 <b>수정</b>의 세부 선택에서 정합니다. <b>구매처</b>를 지정하면 모아보기에서 구매처별로 묶여 한꺼번에 주문할 수 있습니다. <b>본사월</b>은 본사에서 받아야 하는 달입니다. 해마다 바뀌니 연초에 일괄로 다시 지정하세요. <b>상품주소</b>는 기본이 네이버쇼핑 검색입니다. 늘 같은 상품을 산다면 등록해서 확정해 두세요.</p>
       <div class="filters">
-        <input id="cq" placeholder="품목 검색">
+        <input id="cq" placeholder="품목 검색 (이름·번호·담당)">
+        <select id="catSort" style="width:auto" title="정렬"><option value="cat">분류·이름순</option><option value="no">번호순</option></select>
+        <select id="catWho" style="width:auto" title="담당 교사로 거르기"></select>
+        <select id="myWho" style="width:auto" title="나는 누구인지 골라 두면 '내 담당'만 볼 수 있습니다"></select>
+        <button class="btn btn-sec" id="numBtn" title="번호가 없는 품목에 차례로 번호를 매깁니다">번호 매기기</button>
+        <button class="btn btn-sec" id="distBtn">교사에게 분배</button>
+        <button class="btn btn-sec" id="listXlsx" title="지금 보이는 목록을 엑셀로 받습니다">목록 엑셀</button>
         <button class="btn btn-sec" id="siteNaverBtn" title="구매처가 비어 있는 품목을 한 번에 네이버로 지정합니다">구매처 미지정 → 네이버</button>
         <button class="btn btn-primary" id="addBtn">새 품목 추가</button>
       </div>
       <div class="chips" id="cqFilters">
         <button class="chip" data-f="" aria-pressed="true">전체</button>
+        <button class="chip" data-f="mine" aria-pressed="false">내 담당</button>
+        <button class="chip" data-f="nonum" aria-pressed="false">번호 없음</button>
+        <button class="chip" data-f="nophoto" aria-pressed="false">사진 없음</button>
+        <button class="chip" data-f="noassn" aria-pressed="false">담당 미정</button>
         <button class="chip" data-f="nosite" aria-pressed="false">구매처 미지정</button>
         <button class="chip" data-f="nourl" aria-pressed="false">상품주소 미등록</button>
         <button class="chip" data-f="hq" aria-pressed="false">본사 지정</button>
         <button class="chip" data-f="over" aria-pressed="false">해외온라인</button>
         <button class="chip" data-f="off" aria-pressed="false">거래처·본사</button>
       </div>
+      <p class="sub" id="myProg" style="margin:0 0 8px" hidden></p>
+      <datalist id="whoList"></datalist>
       <div class="bulk" id="bulkBar">
         <b><span class="num" id="bulkN">0</span>개 선택</b>
+        <input id="bulkWho" list="whoList" placeholder="담당 교사" style="width:120px;padding:5px 8px;font-size:13px">
+        <button class="btn btn-primary btn-sm" id="bulkWhoGo">담당 지정</button>
+        <span class="sep"></span>
         <select id="bulkSite" style="width:auto"></select>
         <button class="btn btn-primary btn-sm" id="bulkSiteGo">구매처 적용</button>
         <span class="sep"></span>
@@ -364,7 +383,7 @@ tr.grp:hover td{background:#BFD0E4}
       <p class="scroll-note" id="catNote">표를 옆으로 밀면 나머지 열이 보입니다.</p>
       <div class="tbl-wrap wide"><table><thead><tr>
         <th style="width:36px"><input type="checkbox" id="catAll" aria-label="전체 선택" style="width:auto;margin:0"></th>
-        <th style="width:56px">사진</th><th style="width:10%">분류</th><th style="width:21%">품목명</th><th style="width:22%">참고 규격</th>
+        <th style="width:64px">번호</th><th style="width:56px">사진</th><th style="width:9%">분류</th><th style="width:16%">품목명</th><th style="width:9%">담당</th><th style="width:17%">참고 규격</th>
         <th style="width:15%">구매처</th><th style="width:11%">기준단가</th><th style="width:8%">본사월</th><th style="width:9%">구매경로</th><th style="width:9%">상품주소</th><th style="width:10%"></th>
       </tr></thead><tbody id="catBody"></tbody></table></div>
     </div>
@@ -397,6 +416,10 @@ tr.grp:hover td{background:#BFD0E4}
         <button type="button" class="btn btn-sec btn-sm" id="eThumbDel" hidden>사진 삭제</button>
         <input type="file" id="eFile" accept="image/*" hidden>
       </div>
+    </div>
+    <div class="row" style="margin-top:12px">
+      <div style="flex:0 0 110px"><label for="eNo">번호</label><input id="eNo" type="number" min="1" step="1" class="num" placeholder="자동"></div>
+      <div style="flex:1;min-width:160px"><label for="eWho">담당 교사 (선택)</label><input id="eWho" list="whoList" placeholder="예: 김선생"></div>
     </div>
     <label for="eName" style="margin-top:12px">품목명</label><input id="eName" placeholder="어떤 물건인지 바로 알 수 있는 이름">
     <label for="eDesc" style="margin-top:12px">설명 (선택)</label>
@@ -433,6 +456,33 @@ tr.grp:hover td{background:#BFD0E4}
     <button class="btn btn-sec" id="hCsv">CSV 내려받기</button>
     <button class="btn btn-primary" id="hXlsx">엑셀(.xlsx) 내려받기</button>
   </div>
+</div></div>
+
+<!-- 교사에게 분배 -->
+<div class="modal" id="distModal"><div class="modal-box" style="max-width:760px">
+  <div class="modal-head"><span>교사에게 품목 분배</span><button data-close>&times;</button></div>
+  <div class="modal-body">
+    <p class="sub" style="margin:0 0 8px">번호가 매겨진 품목을 <b>번호 순서대로</b> 나눠서 담당 교사를 정합니다. 번호가 없는 품목은 먼저 <b>번호 매기기</b>를 하세요. 교사는 품목관리에서 이름을 고르면 <b>내 담당</b>만 모아 볼 수 있습니다.</p>
+    <label for="dNames">교사 이름 (한 줄에 한 명, 또는 쉼표로 구분)</label>
+    <textarea id="dNames" rows="3" placeholder="김선생&#10;이선생&#10;박선생"></textarea>
+    <label class="chkl"><input type="checkbox" id="dNoPhoto" style="width:auto;margin:0"> 사진이 아직 없는 품목만 분배</label>
+    <label class="chkl"><input type="checkbox" id="dKeep" checked style="width:auto;margin:0"> 이미 담당이 정해진 품목은 그대로 두기</label>
+    <div class="sub" id="dPreview" style="margin:10px 0 0;white-space:pre-line"></div>
+    <div style="margin-top:8px"><button class="btn btn-primary" id="dApply">균등 분배 적용</button></div>
+    <hr style="border:0;border-top:1px solid var(--line);margin:16px 0">
+    <label>번호 범위로 지정</label>
+    <div class="row" style="align-items:flex-end">
+      <div style="flex:0 0 90px"><label for="rFrom">시작</label><input id="rFrom" type="number" min="1" class="num"></div>
+      <div style="flex:0 0 90px"><label for="rTo">끝</label><input id="rTo" type="number" min="1" class="num"></div>
+      <div style="flex:1;min-width:140px"><label for="rWho">교사</label><input id="rWho" list="whoList" placeholder="예: 김선생"></div>
+      <button class="btn btn-sec" id="rApply">범위 적용</button>
+    </div>
+    <div class="sub" id="rPreview" style="margin:6px 0 0"></div>
+    <hr style="border:0;border-top:1px solid var(--line);margin:16px 0">
+    <label>분배 현황</label>
+    <div id="dStatus"></div>
+  </div>
+  <div class="modal-foot"><button class="btn btn-danger" id="dClear">담당 모두 해제</button><span style="flex:1"></span><button class="btn btn-sec" data-close>닫기</button></div>
 </div></div>
 
 <!-- 사진 확대 -->
@@ -614,6 +664,10 @@ $('#thumbSeg').onclick = e => {
 };
 applyThumbSize();
 
+// 품목 번호(001…): 한 번 매기면 바뀌지 않는다. 담당 교사(assignee)는 이름 글자로 저장한다.
+const fmtNo = n => (n==null || n==='') ? '' : String(n).padStart(3,'0');
+let myWho = ''; try{ myWho = localStorage.getItem('myWho') || ''; }catch(e){}
+
 // 역할별 권한. 이메일을 적으면 그 사람에게만 해당 버튼이 보이고, 비워 두면 로그인한 모두에게 보인다.
 //   buyer  : 모아보기에서 수량 입력·장바구니 처리·반려 (구매 담당자)
 //   payer  : 주문관리에서 결제 완료·반려 (결제 권한자)
@@ -666,6 +720,7 @@ function watch(){
     master = s.docs.map(d=>({...d.data(), id:d.id}))
       .sort((a,b)=> a.cat.localeCompare(b.cat,'ko') || a.name.localeCompare(b.name,'ko'));
     renderItems(); renderOff(); renderCat(); renderAgg(); renderOffAgg(); renderOrd();
+    if($('#distModal').classList.contains('on')) renderDist();
     if($('#orderModal').classList.contains('on')) renderOrder();
   });
   onSnapshot(query(collection(db,'requests')), s => {
@@ -716,6 +771,7 @@ function cardHtml(m){
           <h4>${esc(m.name)}</h4>
           ${m.desc?`<div class="sub" style="margin:0">${esc(m.desc)}</div>`:''}
           <div class="tags">
+            ${m.no!=null?`<span class="badge">No.${fmtNo(m.no)}</span>`:''}
             <span class="badge">${esc(m.cat)}</span>
             ${chanOf(m)==='해외온라인'?'<span class="badge badge-over">해외</span>':''}
             ${m.hq?`<span class="badge badge-hq">본사 ${esc(m.hq)}</span>`:''}
@@ -1002,7 +1058,7 @@ const qtyOf = v => v.buyQty!=null ? v.buyQty : v.reqQty;
 
 function itemCell(v){
   const m = metaV(v);
-  return `<div style="display:flex;gap:10px;align-items:flex-start">${thumbImg(m,'r')}<div style="min-width:0"><b>${esc(v.name)}</b>${reqChan({itemId:v.itemId, chan:v.chan, ch:v.ch})==='해외온라인'?' <span class="badge badge-over">해외</span>':''}
+  return `<div style="display:flex;gap:10px;align-items:flex-start">${thumbImg(m,'r')}<div style="min-width:0"><b>${esc(v.name)}</b>${m.no!=null?` <span class="brk">No.${fmtNo(m.no)}</span>`:''}${reqChan({itemId:v.itemId, chan:v.chan, ch:v.ch})==='해외온라인'?' <span class="badge badge-over">해외</span>':''}
     ${v.spec?`<div class="sub" style="margin:0">요청: ${esc(v.spec)}</div>`:''}
     ${v.notes.map(n=>`<div class="brk">메모: ${esc(n)}</div>`).join('')}
     ${m.vendor?`<div class="brk">${esc(m.vendor)}</div>`:''}
@@ -1590,7 +1646,7 @@ function histRows(){
     const note = (...ss) => { const e = pick(...ss); return e ? (e.note||'') : ''; };
     const created = toDate(r.createdAt);
     const lastLog = log.length ? toDate(log[log.length-1].at) : null;
-    return {id:r.id, created, branch:r.branch||'', requester:r.requester||'', email:r.by||'',
+    return {id:r.id, no:m.no??'', created, branch:r.branch||'', requester:r.requester||'', email:r.by||'',
       chan:reqChan(r), site:r.site||m.site||'미지정', cat:r.cat||m.cat||'', name:r.name||'', spec:r.spec||'',
       memo:[r.note, r.memo].filter(Boolean).join(' / '),
       qty:(r.buyQty!=null ? r.buyQty : (r.qty!=null ? r.qty : '')),
@@ -1648,7 +1704,7 @@ $('#hReset').onclick = () => { ['hFrom','hTo','hBr','hSt','hCh','hSite','hQ'].fo
 // 엑셀 열: [제목, 값, 너비]
 const H_COLS = [
   ['요청일시', h=>fmtDT(h.created), 17], ['요청자', h=>h.requester, 10], ['요청자 이메일', h=>h.email, 24], ['원', h=>h.branch, 7],
-  ['구매경로', h=>h.chan, 11], ['구매처', h=>h.site, 11], ['분류', h=>h.cat, 12], ['품목', h=>h.name, 24],
+  ['구매경로', h=>h.chan, 11], ['구매처', h=>h.site, 11], ['분류', h=>h.cat, 12], ['품목번호', h=>h.no===''?'':Number(h.no), 9], ['품목', h=>h.name, 24],
   ['요청 세부', h=>h.spec, 22], ['요청 메모', h=>h.memo, 22], ['수량', h=>h.qty===''?'':Number(h.qty), 7],
   ['상태', h=>H_LABEL[h.status]||h.status, 13], ['장바구니일시', h=>fmtDT(h.cartAt), 17], ['결제(주문)일시', h=>fmtDT(h.payAt), 17],
   ['배송·검수 완료일시', h=>fmtDT(h.doneAt), 17], ['반려일시', h=>fmtDT(h.rejAt), 17], ['반려 단계', h=>h.rejStage, 9],
@@ -1744,9 +1800,15 @@ $('#delOk').onclick = async () => {
 let picked = new Set(), catFilter = '';
 
 function catList(){
-  const kw = $('#cq').value.trim().toLowerCase();
-  return master.filter(m => {
-    if(kw && !(m.name+' '+(m.desc||'')+' '+(m.spec||'')+' '+(m.vendor||'')).toLowerCase().includes(kw)) return false;
+  const kw = $('#cq').value.trim().toLowerCase(), who = $('#catWho').value;
+  const list = master.filter(m => {
+    if(kw && !(m.name+' '+(m.desc||'')+' '+(m.spec||'')+' '+(m.vendor||'')+' '+(m.assignee||'')+' '+fmtNo(m.no)+' '+(m.no??'')).toLowerCase().includes(kw)) return false;
+    if(catFilter==='nonum' && m.no!=null) return false;
+    if(catFilter==='nophoto' && m.thumb) return false;
+    if(catFilter==='noassn' && m.assignee) return false;
+    if(catFilter==='mine' && (!myWho || m.assignee!==myWho)) return false;
+    if(who==='__none' && m.assignee) return false;
+    if(who && who!=='__none' && m.assignee!==who) return false;
     if(catFilter==='nosite' && (m.site||'미지정')!=='미지정') return false;
     if(catFilter==='hq' && !m.hq) return false;
     if(catFilter==='over' && chanOf(m)!=='해외온라인') return false;
@@ -1754,7 +1816,9 @@ function catList(){
     if(catFilter==='nourl' && m.url) return false;
     return true;
   });
+  return $('#catSort').value==='no' ? [...list].sort((a,b) => (a.no==null)-(b.no==null) || (a.no-b.no)) : list;
 }
+const assignees = () => [...new Set(master.map(m => m.assignee).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'ko'));
 
 function renderBulk(){
   const n = picked.size;
@@ -1827,6 +1891,107 @@ async function applyBulk(ids, fn){
 }
 
 $('#cq').oninput = renderCat;
+$('#catSort').onchange = renderCat;
+$('#catWho').onchange = renderCat;
+$('#myWho').onchange = () => {
+  myWho = $('#myWho').value;
+  try{ localStorage.setItem('myWho', myWho); }catch(e){}
+  renderCat();
+};
+
+// 번호·담당 도구들
+function refreshNumWhoUI(){
+  const names = assignees();
+  const keepWho = $('#catWho').value;
+  $('#catWho').innerHTML = '<option value="">담당 전체</option><option value="__none">담당 미정</option>'
+    + names.map(n => `<option${n===keepWho?' selected':''}>${esc(n)}</option>`).join('');
+  const mine = [...new Set([...names, ...(myWho ? [myWho] : [])])];
+  $('#myWho').innerHTML = '<option value="">나는… (이름 선택)</option>' + mine.map(n => `<option${n===myWho?' selected':''}>${esc(n)}</option>`).join('');
+  $('#whoList').innerHTML = names.map(n => `<option value="${esc(n)}">`).join('');
+  const todo = master.filter(m => m.no==null).length;
+  $('#numBtn').textContent = todo ? `번호 매기기 (${todo}개)` : '번호 매기기 완료';
+  $('#numBtn').disabled = !todo;
+  const my = myWho ? master.filter(m => m.assignee===myWho) : [];
+  const done = my.filter(m => m.thumb).length;
+  $('#myProg').hidden = !my.length;
+  if(my.length) $('#myProg').innerHTML = `<b>${esc(myWho)}</b> 선생님 담당 ${my.length}개 중 사진 ${done}개 완료 (${Math.round(done/my.length*100)}%)<div class="bar" style="margin-top:4px"><i style="width:${Math.round(done/my.length*100)}%"></i></div>`;
+}
+// 번호가 없는 품목에 분류·이름 순서대로 번호를 매긴다(이미 있는 번호는 그대로 둔다)
+$('#numBtn').onclick = async () => {
+  const todo = master.filter(m => m.no==null);
+  if(!todo.length) return;
+  let n = Math.max(0, ...master.map(m => +m.no || 0));
+  const map = {}; todo.forEach(m => { map[m.id] = ++n; });
+  if(!confirm(`번호가 없는 ${todo.length}개 품목에 ${fmtNo(map[todo[0].id])}번부터 ${fmtNo(n)}번까지 번호를 매깁니다. (분류·이름 순서)\n한 번 매긴 번호는 이름을 바꿔도 그대로 유지됩니다.`)) return;
+  await applyBulk(todo.map(m => m.id), m => ({...m, no:map[m.id]}));
+};
+$('#bulkWhoGo').onclick = async () => {
+  const who = $('#bulkWho').value.trim(), ids = [...picked];
+  if(!ids.length) return;
+  if(!confirm(who ? `선택한 ${ids.length}개 품목의 담당을 "${who}"(으)로 지정합니다.` : `선택한 ${ids.length}개 품목의 담당을 비웁니다.`)) return;
+  await applyBulk(ids, m => ({...m, assignee:who}));
+  $('#bulkWho').value = '';
+};
+$('#listXlsx').onclick = () => {
+  const list = catList();
+  const cols = [['번호',m=>m.no==null?'':m.no,7],['분류',m=>m.cat||'',12],['품목명',m=>m.name,26],['설명',m=>m.desc||'',26],
+    ['담당 교사',m=>m.assignee||'',12],['사진',m=>m.thumb?'있음':'없음',7],['구매처',m=>m.site||'미지정',11],['구매경로',m=>chanOf(m),11],['참고 규격',m=>m.spec||'',30]];
+  downloadBlob(makeXlsx('품목목록', cols, list.map(m => cols.map(c => c[1](m)))), `자라다재료_품목목록_${stamp()}.xlsx`);
+  toast(`${list.length}개 품목을 엑셀로 내려받습니다`);
+};
+
+// ── 교사에게 분배: 번호 순서대로 균등하게 나누거나, 번호 범위로 지정한다
+const dNames = () => [...new Set($('#dNames').value.split(/[\n,]/).map(x => x.trim()).filter(Boolean))];
+function distPlan(){
+  const names = dNames();
+  let items = master.filter(m => m.no!=null).sort((a,b) => a.no-b.no);
+  if($('#dNoPhoto').checked) items = items.filter(m => !m.thumb);
+  if($('#dKeep').checked) items = items.filter(m => !m.assignee);
+  // 남는 품목은 앞쪽 교사부터 한 개씩 더 맡긴다 (예: 267개 ÷ 5명 = 54, 54, 53, 53, 53)
+  const base = names.length ? Math.floor(items.length/names.length) : 0, extra = names.length ? items.length % names.length : 0;
+  let at = 0;
+  const parts = names.map((n,i) => { const size = base + (i < extra ? 1 : 0); const list = items.slice(at, at+size); at += size; return {name:n, list}; });
+  return {names, items, parts};
+}
+function renderDist(){
+  const {names, items, parts} = distPlan();
+  const unnum = master.filter(m => m.no==null).length;
+  $('#dPreview').textContent = !names.length ? '교사 이름을 입력하면 나눠질 범위가 여기에 보입니다.'
+    : (items.length ? parts.map(p => `${p.name}: ${p.list.length ? fmtNo(p.list[0].no)+' ~ '+fmtNo(p.list[p.list.length-1].no) : '—'} (${p.list.length}개)`).join('\n')
+      : '분배할 품목이 없습니다. (번호가 없거나, 조건에서 모두 제외됨)')
+      + (unnum ? `\n※ 번호가 없는 품목 ${unnum}개는 제외됩니다. 먼저 번호 매기기를 하세요.` : '');
+  $('#dApply').disabled = !names.length || !items.length;
+  const f = parseInt($('#rFrom').value,10), t = parseInt($('#rTo').value,10), w = $('#rWho').value.trim();
+  const inR = (f && t) ? master.filter(m => m.no!=null && m.no>=f && m.no<=t) : [];
+  $('#rPreview').textContent = (f && t) ? `${fmtNo(f)} ~ ${fmtNo(t)}번 ${inR.length}개 품목${w ? ' → '+w : ''}` : '';
+  $('#rApply').disabled = !(f && t && w && inR.length);
+  const g = {}; master.forEach(m => { const k = m.assignee || '(담당 미정)'; (g[k] = g[k] || []).push(m); });
+  $('#dStatus').innerHTML = Object.keys(g).length ? '<table style="font-size:13px"><thead><tr><th>교사</th><th class="right">담당</th><th class="right">사진 완료</th><th style="width:30%">진행</th></tr></thead><tbody>'
+    + Object.entries(g).sort((a,b) => (a[0]==='(담당 미정)')-(b[0]==='(담당 미정)') || a[0].localeCompare(b[0],'ko')).map(([k,l]) => {
+      const d = l.filter(m => m.thumb).length, pc = Math.round(d/l.length*100);
+      return `<tr><td>${esc(k)}</td><td class="right num">${l.length}</td><td class="right num">${d}</td><td><div class="bar"><i style="width:${pc}%"></i></div></td></tr>`;
+    }).join('') + '</tbody></table>' : '';
+}
+$('#distBtn').onclick = () => { $('#distModal').classList.add('on'); renderDist(); };
+['dNames','dNoPhoto','dKeep','rFrom','rTo','rWho'].forEach(id => $('#'+id).addEventListener('input', renderDist));
+$('#dApply').onclick = async () => {
+  const {parts, items} = distPlan(); if(!items.length) return;
+  const map = {}; parts.forEach(p => p.list.forEach(m => { map[m.id] = p.name; }));
+  if(!confirm(`${items.length}개 품목을 ${parts.length}명에게 번호 순서대로 나눕니다.`)) return;
+  await applyBulk(Object.keys(map), m => ({...m, assignee:map[m.id]}));
+};
+$('#rApply').onclick = async () => {
+  const f = parseInt($('#rFrom').value,10), t = parseInt($('#rTo').value,10), w = $('#rWho').value.trim();
+  const ids = master.filter(m => m.no!=null && m.no>=f && m.no<=t).map(m => m.id);
+  if(!ids.length || !w) return;
+  if(!confirm(`${fmtNo(f)} ~ ${fmtNo(t)}번 ${ids.length}개 품목의 담당을 "${w}"(으)로 지정합니다. (이미 담당이 있어도 바꿉니다)`)) return;
+  await applyBulk(ids, m => ({...m, assignee:w}));
+};
+$('#dClear').onclick = async () => {
+  const ids = master.filter(m => m.assignee).map(m => m.id); if(!ids.length) return;
+  if(!confirm(`담당이 정해진 ${ids.length}개 품목의 담당을 모두 비웁니다.`)) return;
+  await applyBulk(ids, m => ({...m, assignee:''}));
+};
 function renderCat(){
   const list = catList();
   $('#catN').textContent = master.length;
@@ -1834,14 +1999,17 @@ function renderCat(){
   const allOn = list.length && list.every(m => picked.has(m.id));
   const chk = $('#catAll'); if(chk) chk.checked = !!allOn;
   renderBulk();
+  refreshNumWhoUI();
   const unset = master.filter(m => !m.site || m.site==='미지정').length;
   $('#siteNaverBtn').textContent = unset ? `구매처 미지정 ${unset}개 → 모두 네이버` : '미지정 구매처 없음';
   $('#siteNaverBtn').disabled = !unset;
   $('#catBody').innerHTML = list.map(m => `<tr data-id="${m.id}"${picked.has(m.id)?' class="sel"':''}>
     <td><input type="checkbox" data-pick aria-label="${esc(m.name)} 선택" style="width:auto;margin:0"${picked.has(m.id)?' checked':''}></td>
+    <td class="num brk">${fmtNo(m.no)||'—'}</td>
     <td><button type="button" class="thumb-btn" data-thumb title="사진 넣기·바꾸기" aria-label="${esc(m.name)} 사진">${m.thumb?`<img src="${m.thumb}" alt="" loading="lazy">`:'+'}</button></td>
     <td>${esc(m.cat)}</td>
     <td><b>${esc(m.name)}</b>${m.desc?`<div class="brk">${esc(m.desc)}</div>`:''}</td>
+    <td>${m.assignee?`<span class="badge">${esc(m.assignee)}</span>`:'<span class="brk">—</span>'}</td>
     <td>${m.spec ? esc(m.spec) : '<span class="brk">—</span>'}</td>
     <td><select data-site style="padding:3px 4px;font-size:12px">${SITE_ORDER.map(x=>`<option${x===(m.site||'미지정')?' selected':''}>${esc(x)}</option>`).join('')}</select>
       ${m.vendor?`<div class="brk" style="margin-top:2px">${esc(m.vendor)}</div>`:''}</td>
@@ -1887,6 +2055,7 @@ $('#catBody').onclick = async e => {
   if(!e.target.closest('[data-edit],[data-thumb]')) return;
   editId = id;
   $('#eName').value = m.name; $('#eDesc').value = m.desc||''; $('#eSpec').value = m.spec||'';
+  $('#eNo').value = m.no ?? ''; $('#eWho').value = m.assignee || '';
   $('#eOpts').value = optsToText(optsOf(m));
   eThumb = undefined; showEThumb(m.thumb);
   $('#editModal').classList.add('on');
@@ -1938,7 +2107,11 @@ $('#eOk').onclick = async () => {
   const m = master.find(x=>x.id===editId); if(!m) return;
   const name = $('#eName').value.trim();
   if(!name){ $('#eName').focus(); return; }
-  const data = {name, desc:$('#eDesc').value.trim(), spec:$('#eSpec').value.trim(), updatedBy:me.email};
+  const noRaw = $('#eNo').value.trim(), no = noRaw==='' ? null : Number(noRaw);
+  if(noRaw!=='' && (!Number.isInteger(no) || no<1)){ alert('번호는 1 이상의 정수로 적어 주세요. 비워 두면 번호가 없는 상태가 됩니다.'); $('#eNo').focus(); return; }
+  const dup = no!=null && master.find(x => x.id!==editId && x.no===no);
+  if(dup){ alert(`${fmtNo(no)}번은 이미 "${dup.name}"에 쓰이고 있습니다. 다른 번호를 적어 주세요.`); $('#eNo').focus(); return; }
+  const data = {name, desc:$('#eDesc').value.trim(), spec:$('#eSpec').value.trim(), no, assignee:$('#eWho').value.trim(), updatedBy:me.email};
   if(eThumb !== undefined) data.thumb = eThumb;
   const txt = $('#eOpts').value.trim();
   if(txt !== optsToText(optsOf(m)).trim()) data.opts = parseOpts(txt);
@@ -1964,7 +2137,8 @@ $('#nOk').onclick = async () => {
   await setDoc(doc(db,'materials',id), {id, name, spec, cat:$('#nCat').value,
     vendor:$('#nVendor').value.trim(), url:$('#nUrl').value.trim(),
     surl:'https://search.shopping.naver.com/search/all?query='+encodeURIComponent((name+' '+spec).slice(0,60)),
-    site:'네이버', ch:'on', chan:'온라인', base:'', hq:'', by:me.email});
+    site:'네이버', ch:'on', chan:'온라인', base:'', hq:'', by:me.email,
+    ...(master.some(m => m.no!=null) ? {no:Math.max(0, ...master.map(m => +m.no || 0)) + 1} : {})});
   for(const rid of regIds) await updateDoc(doc(db,'requests',rid), {itemId:id, custom:false, updatedBy:me.email});
   regIds = [];
   ['#nName','#nSpec','#nVendor','#nUrl'].forEach(s=>$(s).value='');
