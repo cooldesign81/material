@@ -1033,10 +1033,37 @@ const SITE_SEARCH = {
   '알리익스프레스':'https://ko.aliexpress.com/wholesale?SearchText=',
   '테무':'https://www.temu.com/search_result.html?search_key='
 };
-const SITE_ORDER = ['네이버','쿠팡','11번가','G마켓','옥션','알리익스프레스','테무','핸즈코리아','기타','미지정','본사','대성 우드락','은성지관','클레이 거래처','오프라인'];
+// 사람이 직접 열어 보는 검색 주소(자동 장바구니는 아직 시험 전이라 SITE_SEARCH와 따로 둔다).
+// 핸즈코리아는 예전 방식(EUC-KR)이라 'euckr:'를 붙여, 브라우저가 한글 검색어를 그 방식으로 바꿔 보내게 한다.
+const SITE_OPEN = {
+  '도매핸즈':'https://www.handz.co.kr/shop/shopbrand.html?search=',
+  '핸즈코리아':'euckr:https://www.hands-kor.co.kr/shop/shopbrand.html?search=',
+  '박스바다':'http://www.boxbada.com/shop/search.php?q=',
+  '안박스':'https://www.an.co.kr/product/list?keyword='
+};
+// 주소를 새 탭으로 연다. 열렸으면 창을, 막혔으면 null을 돌려준다(EUC-KR 주소는 폼으로 보내므로 true).
+function openLink(u){
+  if(u.startsWith('euckr:')){
+    const url = new URL(u.slice(6));
+    const f = document.createElement('form');
+    f.method = 'GET'; f.action = url.origin + url.pathname; f.target = '_blank'; f.rel = 'noopener'; f.acceptCharset = 'euc-kr';
+    url.searchParams.forEach((val, key) => { const i = document.createElement('input'); i.type = 'hidden'; i.name = key; i.value = val; f.appendChild(i); });
+    document.body.appendChild(f); f.submit(); f.remove();
+    return true;
+  }
+  const w = window.open(u, '_blank');          // 'noopener' 옵션을 넣으면 열려도 null이 돌아와 막힌 것으로 오해한다
+  if(w){ try{ w.opener = null; }catch(e){} }
+  return w;
+}
+// 구매처 선택 목록(이 순서로 보인다). 목록에 없는 값(예전 데이터)은 그 품목에서만 그대로 남겨 두고, 새로 고를 수는 없다.
+const SITE_ORDER = ['네이버','쿠팡','도매핸즈','핸즈코리아','11번가','안박스','박스바다','알리익스프레스','테무','기타'];
+const siteOptions = cur => (cur && !SITE_ORDER.includes(cur) ? [...SITE_ORDER, cur] : SITE_ORDER)
+  .map(x => `<option${x===cur?' selected':''}>${esc(x)}</option>`).join('');
 
 const siteOf = v => metaV(v).site || '미지정';
 function searchUrl(m){
+  // 구매처의 검색 주소가 있으면 그곳 검색으로 연다
+  if(!SITE_SEARCH[m.site] && SITE_OPEN[m.site]) return SITE_OPEN[m.site] + encodeURIComponent(m.name||'');
   const base = SITE_SEARCH[m.site] || SITE_SEARCH['네이버'];
   const q = (m.surl||'').split('query=')[1] || encodeURIComponent(m.name||'');
   return base + q;
@@ -1260,13 +1287,13 @@ $('#obNext').onclick = () => {
   const withUrl = orderList.filter(v => linkOf(v).u);
   const batch = withUrl.slice(orderIdx, orderIdx + BATCH);
   let blocked = 0;
-  batch.forEach(v => { if(!window.open(linkOf(v).u, '_blank', 'noopener')) blocked++; });
+  batch.forEach(v => { if(!openLink(linkOf(v).u)) blocked++; });
   orderIdx += batch.length;
   renderOrder();
   if(blocked) alert('브라우저가 새 탭 열기를 막았습니다. 주소창 옆 팝업 차단을 이 사이트에 한해 허용해 주세요.');
 };
 $('#obList').onclick = e => {
-  const o = e.target.closest('[data-oone]'); if(o){ window.open(o.dataset.oone, '_blank', 'noopener'); }
+  const o = e.target.closest('[data-oone]'); if(o){ openLink(o.dataset.oone); }
 };
 // 내 컴퓨터의 Claude(Chrome 연결)에 붙여넣어 쓰는 지시문. 담기까지만, 결제는 하지 않는다.
 // Chrome의 Claude 확장으로 시험한 결과: 쿠팡·11번가·G마켓·옥션·알리익스프레스·테무는 열리고,
@@ -2011,7 +2038,7 @@ function renderCat(){
     <td><b>${esc(m.name)}</b>${m.desc?`<div class="brk">${esc(m.desc)}</div>`:''}</td>
     <td>${m.assignee?`<span class="badge">${esc(m.assignee)}</span>`:'<span class="brk">—</span>'}</td>
     <td>${m.spec ? esc(m.spec) : '<span class="brk">—</span>'}</td>
-    <td><select data-site style="padding:3px 4px;font-size:12px">${SITE_ORDER.map(x=>`<option${x===(m.site||'미지정')?' selected':''}>${esc(x)}</option>`).join('')}</select>
+    <td><select data-site style="padding:3px 4px;font-size:12px">${siteOptions(m.site||'미지정')}</select>
       ${m.vendor?`<div class="brk" style="margin-top:2px">${esc(m.vendor)}</div>`:''}</td>
     <td class="brk">${esc(m.base||'—')}</td>
     <td><button class="btn btn-sec btn-sm" data-hq style="${m.hq?'background:#FBE9D4;border-color:#EBC89C;color:#9A5A08;font-weight:700':''}">${m.hq?esc(m.hq):'—'}</button></td>
@@ -2127,7 +2154,7 @@ $('#eOk').onclick = async () => {
 };
 
 $('#nCat').innerHTML = CATS.map(c=>`<option>${esc(c)}</option>`).join('');
-$('#bulkSite').innerHTML = SITE_ORDER.map(x=>`<option>${esc(x)}</option>`).join('');
+$('#bulkSite').innerHTML = SITE_ORDER.map(x=>`<option>${esc(x)}</option>`).join('');   // 새로 고를 수 있는 구매처만
 $('#bulkChan').innerHTML = CHANNELS.map(x=>`<option>${esc(x)}</option>`).join('');
 $('#addBtn').onclick = () => $('#newModal').classList.add('on');
 $('#nOk').onclick = async () => {
