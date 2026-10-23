@@ -98,6 +98,9 @@ body[data-thumb="L"]{--tr:128px;--tt:88px;--tc:210px}
 .drop.over{border-color:var(--brand-orange);background:#FFF7E8}
 .drop img{width:120px;height:120px;object-fit:contain;border:1px solid var(--line);border-radius:6px;background:#fff;flex:0 0 auto}
 .drop .ph{width:120px;height:120px;border:1px solid var(--line);border-radius:6px;background:#fff;color:#BFBFBF;display:flex;align-items:center;justify-content:center;font-size:30px;flex:0 0 auto}
+.mask{letter-spacing:2px}
+.acc-card{max-width:460px;background:#fff;border:1px solid var(--line);border-radius:var(--r-card);padding:16px}
+.acc-err{color:#B42318;font-size:13px;min-height:20px;margin:6px 0}
 .opt-grp{margin-top:12px}
 .opt-grp .chips{margin-bottom:0}
 .cart-note{margin-top:6px;padding:5px 8px;font-size:12px}
@@ -212,8 +215,8 @@ tr.grp:hover td{background:#BFD0E4}
   .grid{grid-template-columns:1fr}
   th{position:static}
 }
-/* 한 줄(약 950px)에 다 들어가지 않으면: 위 줄 = 로고 + 사진 크기 + 로그인, 아래 줄 = 메뉴(옆으로 밀어 보기) */
-@media(max-width:980px){
+/* 한 줄(약 970px)에 다 들어가지 않으면: 위 줄 = 로고 + 사진 크기 + 로그인, 아래 줄 = 메뉴(옆으로 밀어 보기). 글꼴에 따라 폭이 달라 여유를 둔다 */
+@media(max-width:1040px){
   .appbar{flex-wrap:wrap;gap:0 8px;padding:0 12px}
   .appbar .logo{order:1;flex:1;font-size:16px;padding:10px 0}
   .appbar .who{order:2;gap:6px}
@@ -221,6 +224,14 @@ tr.grp:hover td{background:#BFD0E4}
   .appbar nav{order:3;flex:0 0 100%;overflow-x:auto;margin:0 -12px;padding:0 12px;border-top:1px solid rgba(0,0,0,.12);scrollbar-width:none;-webkit-overflow-scrolling:touch}
   .appbar nav::-webkit-scrollbar{display:none}
   .appbar nav button{padding:12px 10px;font-size:14px}
+}
+@media(max-width:768px){
+  #tab-acc .tbl-wrap table{min-width:0}
+  #tab-acc thead{display:none}
+  #acBody tr{display:block;padding:10px 12px;border-bottom:1px solid var(--line)}
+  #acBody td{display:flex;align-items:center;flex-wrap:wrap;gap:6px;padding:3px 0;border:0;white-space:normal!important}
+  #acBody td::before{content:attr(data-l);flex:0 0 58px;color:var(--text-sub);font-size:12px;font-weight:600}
+  #acBody td[data-l=""]::before,#acBody td[colspan]::before{content:none}
 }
 @media print{
   .appbar,.topbar,.cart,.filters,.chips,.btn{display:none!important}
@@ -238,11 +249,12 @@ tr.grp:hover td{background:#BFD0E4}
 <div class="appbar">
   <div class="logo">자라다 재료</div>
   <nav>
-    <button data-tab="req" aria-current="page">온라인 주문요청<span class="badge-count" id="reqBadge" hidden></span></button>
-    <button data-tab="off">거래처·본사 요청</button>
+    <button data-tab="req" aria-current="page">온라인주문<span class="badge-count" id="reqBadge" hidden></span></button>
+    <button data-tab="off">거래처 주문</button>
     <button data-tab="agg">모아보기</button>
     <button data-tab="ord">주문관리</button>
     <button data-tab="cat">품목관리</button>
+    <button data-tab="acc">계정관리</button>
   </nav>
   <div class="who">
     <div class="seg" id="thumbSeg" role="group" aria-label="사진 크기"><span class="seg-l">사진</span>
@@ -264,7 +276,7 @@ tr.grp:hover td{background:#BFD0E4}
 
   <section id="tab-req">
     <div class="sect">
-      <h2>온라인 주문요청</h2>
+      <h2>온라인주문</h2>
       <p class="sub">쇼핑몰(국내·해외)에서 사는 재료입니다. 필요한 걸 담아 요청하세요. 수량과 규격은 구매 담당자가 정하니 적지 않아도 되고, 색상·굵기처럼 꼭 알려야 하는 것만 세부 선택에서 고르면 됩니다.</p>
       <div class="filters">
         <input id="q" placeholder="품목 검색 (예: 도화지, 레진, 테이프)">
@@ -283,7 +295,7 @@ tr.grp:hover td{background:#BFD0E4}
   <!-- 거래처 주문요청 -->
   <section id="tab-off" hidden>
     <div class="sect">
-      <h2>거래처·본사 요청</h2>
+      <h2>거래처 주문</h2>
       <p class="sub">본사와 오프라인 거래처에서 받는 재료입니다. <b>요청하기</b>에서 담고, 구매 담당자는 <b>모인 요청</b>에서 거래처·본사별로 모아 확인해 직접 주문하세요.</p>
       <div class="chips" id="offMode">
         <button class="chip" data-m="req" aria-pressed="true">요청하기</button>
@@ -395,6 +407,40 @@ tr.grp:hover td{background:#BFD0E4}
       </tr></thead><tbody id="catBody"></tbody></table></div>
     </div>
   </section>
+
+  <!-- 계정관리 -->
+  <section id="tab-acc" hidden>
+    <div class="sect">
+      <h2>계정관리</h2>
+      <p class="sub">장바구니 담고 결제하는 사이트의 <b>주소·아이디·비밀번호</b>를 보관합니다. <b>결제 담당자만 아는 비밀번호</b>로 잠가 두며, 내용은 그 비밀번호로 <b>암호화</b>되어 저장돼 비밀번호 없이는 아무도(Firebase 관리자 포함) 읽을 수 없습니다. 비밀번호를 잊으면 복구할 수 없습니다. 카드번호 같은 결제 정보는 넣지 마세요.</p>
+      <div class="empty" id="accMsg" hidden></div>
+      <div class="acc-card" id="accSetup" hidden>
+        <h3 style="margin:0 0 6px">처음 설정: 계정관리 비밀번호 정하기</h3>
+        <p class="sub" style="margin:0 0 10px">이 비밀번호를 아는 사람만 계정 정보를 볼 수 있습니다. 10자 이상, 다른 곳에서 쓰지 않는 비밀번호를 권합니다. <b>분실하면 복구할 수 없습니다.</b></p>
+        <label for="asPw1">비밀번호</label><input id="asPw1" type="password" autocomplete="new-password">
+        <label for="asPw2" style="margin-top:8px">비밀번호 확인</label><input id="asPw2" type="password" autocomplete="new-password">
+        <div class="acc-err" id="asErr"></div>
+        <button class="btn btn-primary" id="asOk">비밀번호 만들기</button>
+      </div>
+      <div class="acc-card" id="accLock" hidden>
+        <h3 style="margin:0 0 6px">잠겨 있습니다</h3>
+        <label for="alPw">계정관리 비밀번호</label><input id="alPw" type="password" autocomplete="off">
+        <div class="acc-err" id="alErr"></div>
+        <button class="btn btn-primary" id="alOk">열기</button>
+        <p class="sub" style="margin:10px 0 0">비밀번호를 잊었다면 앱에서는 복구할 수 없습니다. Firebase 콘솔에서 <code>vault</code> 컬렉션의 <code>main</code> 문서를 지우면 새로 설정할 수 있습니다(저장된 계정 정보는 모두 사라집니다).</p>
+      </div>
+      <div id="accOpen" hidden>
+        <div class="filters">
+          <input id="acQ" placeholder="사이트·아이디·메모 검색">
+          <button class="btn btn-primary" id="acAdd">사이트 추가</button>
+          <button class="btn btn-sec" id="acChg">비밀번호 바꾸기</button>
+          <button class="btn btn-sec" id="acLock">잠그기</button>
+        </div>
+        <p class="sub" id="acCount" style="margin:0 0 8px"></p>
+        <div class="tbl-wrap"><table><thead><tr><th>사이트</th><th>주소</th><th>아이디</th><th>비밀번호</th><th>메모</th><th></th></tr></thead><tbody id="acBody"></tbody></table></div>
+      </div>
+    </div>
+  </section>
 </main>
 
 <div class="cart"><button class="btn btn-primary" id="cartBtn">요청 담기<span class="n num" id="cartN">0</span></button></div>
@@ -490,6 +536,34 @@ tr.grp:hover td{background:#BFD0E4}
     <div id="dStatus"></div>
   </div>
   <div class="modal-foot"><button class="btn btn-danger" id="dClear">담당 모두 해제</button><span style="flex:1"></span><button class="btn btn-sec" data-close>닫기</button></div>
+</div></div>
+
+<!-- 계정 등록·수정 -->
+<div class="modal" id="accModal"><div class="modal-box">
+  <div class="modal-head"><span id="amTitle">사이트 추가</span><button data-close>&times;</button></div>
+  <div class="modal-body">
+    <label for="amSite">사이트 이름</label><input id="amSite" list="amSites" placeholder="예: 쿠팡" autocomplete="off">
+    <datalist id="amSites"></datalist>
+    <label for="amUrl" style="margin-top:12px">주소 (로그인 페이지)</label><input id="amUrl" placeholder="예: https://www.coupang.com" autocomplete="off">
+    <label for="amId" style="margin-top:12px">아이디</label><input id="amId" autocomplete="off">
+    <label for="amPw" style="margin-top:12px">비밀번호</label>
+    <input id="amPw" type="password" autocomplete="new-password">
+    <label class="chkl"><input type="checkbox" id="amShow" style="width:auto;margin:0"> 비밀번호 보이기</label>
+    <label for="amMemo" style="margin-top:12px">메모 (선택)</label><input id="amMemo" placeholder="예: 법인 계정, 2단계 인증 번호는 대표 폰" autocomplete="off">
+  </div>
+  <div class="modal-foot"><button class="btn btn-danger" id="amDel" hidden>삭제</button><span style="flex:1"></span><button class="btn btn-sec" data-close>취소</button><button class="btn btn-primary" id="amOk">저장</button></div>
+</div></div>
+
+<!-- 계정관리 비밀번호 바꾸기 -->
+<div class="modal" id="accPwModal"><div class="modal-box" style="max-width:440px">
+  <div class="modal-head"><span>계정관리 비밀번호 바꾸기</span><button data-close>&times;</button></div>
+  <div class="modal-body">
+    <label for="apOld">지금 비밀번호</label><input id="apOld" type="password" autocomplete="off">
+    <label for="apNew1" style="margin-top:10px">새 비밀번호 (8자 이상, 10자 이상 권장)</label><input id="apNew1" type="password" autocomplete="new-password">
+    <label for="apNew2" style="margin-top:10px">새 비밀번호 확인</label><input id="apNew2" type="password" autocomplete="new-password">
+    <div class="acc-err" id="apErr"></div>
+  </div>
+  <div class="modal-foot"><button class="btn btn-sec" data-close>취소</button><button class="btn btn-primary" id="apOk">바꾸기</button></div>
 </div></div>
 
 <!-- 사진 확대 -->
@@ -601,7 +675,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/fireba
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged }
   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { getFirestore, collection, doc, setDoc, addDoc, deleteDoc, updateDoc,
-  onSnapshot, getDocs, writeBatch, serverTimestamp, query, orderBy }
+  onSnapshot, getDocs, writeBatch, serverTimestamp, query, orderBy, runTransaction }
   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 // ───────────────────────────────────────────────
@@ -723,6 +797,14 @@ async function seedIfEmpty(){
 
 // ── 실시간 구독
 function watch(){
+  onSnapshot(collection(db,'vault'), s => {
+    const d = s.docs.find(x => x.id==='main');
+    vault = d ? d.data() : null; vaultLoaded = true; vaultError = '';
+    vaultSynced();
+  }, err => {                                   // 보안 규칙이 vault를 막은 경우 등
+    console.error('계정관리 불러오기 실패', err && err.code);
+    vaultLoaded = true; vaultError = (err && err.code) || 'error'; vaultSynced();
+  });
   onSnapshot(collection(db,'materials'), s => {
     master = s.docs.map(d=>({...d.data(), id:d.id}))
       .sort((a,b)=> a.cat.localeCompare(b.cat,'ko') || a.name.localeCompare(b.name,'ko'));
@@ -744,8 +826,11 @@ document.querySelectorAll('.appbar nav button').forEach(b => b.onclick = () => {
   b.setAttribute('aria-current','page');
   try{ b.scrollIntoView({block:'nearest', inline:'center', behavior:'smooth'}); }catch(e){}
   const t0 = b.dataset.tab;
-  ['req','off','agg','ord','cat'].forEach(t => $('#tab-'+t).hidden = (t !== t0));
+  ['req','off','agg','ord','cat','acc'].forEach(t => $('#tab-'+t).hidden = (t !== t0));
+  const prevTab = curTab;
   curTab = t0; syncChrome();
+  if(prevTab==='acc' && t0!=='acc') lockVault();       // 계정관리를 떠나면 다시 잠근다
+  if(t0==='acc') renderAcc();
 });
 let curTab = 'req', offMode = 'req';
 // 요청자 선택칸과 '요청 담기' 버튼은 요청하는 화면에서만 보인다
@@ -2186,6 +2271,203 @@ document.addEventListener('click', e => {
   $('#zoomImg').src = im.src; $('#zoomName').textContent = im.alt || '사진';
   $('#zoomModal').classList.add('on');
 });
+
+// ── 계정관리: 비밀번호로 암호화해서 저장한다.
+// 비밀번호 → PBKDF2(SHA-256, 60만 회)로 키를 만들고 AES-GCM으로 암호화한 글만 Firebase(vault/main)에 올린다.
+// 주소·아이디·비밀번호는 암호화되기 전에는 이 화면의 메모리에만 있고, 잠그거나 탭을 떠나면 지워진다.
+const VAULT_ITER = 600000, IDLE_MS = 10*60*1000;
+let vault = null, vaultLoaded = false, vaultError = '', vaultKey = null, vaultItems = [], vaultRev = 0, vaultLast = Date.now(), accEditId = null;
+const accShown = new Set();
+const U8E = new TextEncoder(), U8D = new TextDecoder();
+const b64 = u8 => { let t = ''; u8.forEach(c => t += String.fromCharCode(c)); return btoa(t); };
+const unb64 = t => Uint8Array.from(atob(t), c => c.charCodeAt(0));
+const cryptoOK = () => !!(window.crypto && crypto.subtle);
+async function deriveKey(pw, salt, iter){
+  const base = await crypto.subtle.importKey('raw', U8E.encode(pw), 'PBKDF2', false, ['deriveKey']);
+  return crypto.subtle.deriveKey({name:'PBKDF2', salt, iterations:iter, hash:'SHA-256'}, base, {name:'AES-GCM', length:256}, false, ['encrypt','decrypt']);
+}
+async function sealJSON(key, obj){
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const ct = new Uint8Array(await crypto.subtle.encrypt({name:'AES-GCM', iv}, key, U8E.encode(JSON.stringify(obj))));
+  return {iv:b64(iv), ct:b64(ct)};
+}
+async function openJSON(key, p){
+  const pt = await crypto.subtle.decrypt({name:'AES-GCM', iv:unb64(p.iv)}, key, unb64(p.ct));   // 비밀번호가 틀리면 여기서 실패한다
+  return JSON.parse(U8D.decode(pt));
+}
+const newId = () => (crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2,8));
+function normUrl(u){
+  u = u.trim(); if(!u) return '';
+  if(!/^[a-z][a-z0-9+.-]*:/i.test(u)) u = 'https://' + u;
+  try{ const x = new URL(u); return /^https?:$/.test(x.protocol) ? x.href : null; }catch(e){ return null; }
+}
+function lockVault(msg){
+  vaultKey = null; vaultItems = []; accShown.clear();
+  // 잠글 때 화면(숨겨진 부분 포함)에 남은 계정 정보도 모두 지운다
+  $('#acBody').innerHTML = ''; $('#acCount').textContent = '';
+  ['acQ','alPw','asPw1','asPw2','apOld','apNew1','apNew2','amSite','amUrl','amId','amPw','amMemo'].forEach(i => $('#'+i).value = '');
+  $('#accModal').classList.remove('on'); $('#accPwModal').classList.remove('on');
+  if(curTab==='acc') renderAcc(msg);
+}
+function renderAcc(msg){
+  const only = id => ['accMsg','accSetup','accLock','accOpen'].forEach(x => $('#'+x).hidden = x!==id);
+  const say = t => { $('#accMsg').textContent = t; only('accMsg'); };
+  if(!cryptoOK()) return say('이 주소에서는 암호화 기능을 쓸 수 없습니다. https 주소로 접속해 주세요.');
+  if(!me) return say('로그인이 필요합니다.');
+  if(!vaultLoaded) return say('불러오는 중…');
+  if(vaultError) return say(vaultError==='permission-denied'
+    ? 'Firebase 보안 규칙이 계정관리 저장소(vault)를 막고 있습니다. 규칙에서 로그인한 사용자가 vault를 읽고 쓸 수 있도록 허용해 주세요.'
+    : '계정 정보를 불러오지 못했습니다. 잠시 뒤 다시 시도해 주세요. (' + vaultError + ')');
+  if(!vault){ $('#asErr').textContent = msg || ''; return only('accSetup'); }
+  if(!vaultKey){ $('#alErr').textContent = msg || ''; only('accLock'); return; }
+  only('accOpen'); renderAccList();
+}
+function renderAccList(){
+  const q = $('#acQ').value.trim().toLowerCase();
+  const rank = n => (SITE_ORDER.indexOf(n)+1) || 99;
+  const list = vaultItems.filter(x => !q || [x.site,x.url,x.user,x.memo].join(' ').toLowerCase().includes(q))
+    .sort((a,b) => rank(a.site)-rank(b.site) || a.site.localeCompare(b.site,'ko'));
+  $('#acCount').textContent = `${list.length}개${q ? ' (검색 결과)' : ''} · 10분 동안 아무것도 하지 않으면 자동으로 잠깁니다.`;
+  $('#acBody').innerHTML = list.map(x => `<tr data-id="${esc(x.id)}">
+    <td data-l="사이트"><b>${esc(x.site)}</b></td>
+    <td data-l="주소" class="brk" style="word-break:break-all">${/^https?:\/\//i.test(x.url||'') ? `<a href="${esc(x.url)}" target="_blank" rel="noopener noreferrer">${esc(x.url.replace(/^https?:\/\//,'').replace(/\/$/,''))}</a>` : '—'}</td>
+    <td data-l="아이디">${x.user ? `${esc(x.user)} <button class="btn btn-sec btn-sm" data-cp="user">복사</button>` : '—'}</td>
+    <td data-l="비밀번호" style="white-space:nowrap">${x.pw ? `${accShown.has(x.id) ? `<code>${esc(x.pw)}</code>` : '<span class="mask">••••••••</span>'}
+      <button class="btn btn-sec btn-sm" data-see>${accShown.has(x.id) ? '숨기기' : '보기'}</button> <button class="btn btn-sec btn-sm" data-cp="pw">복사</button>` : '—'}</td>
+    <td data-l="메모" class="brk">${esc(x.memo||'')}</td>
+    <td data-l=""><button class="btn btn-sec btn-sm" data-edit>수정</button></td></tr>`).join('')
+    || `<tr><td colspan="6"><div class="empty">${vaultItems.length ? '검색 결과가 없습니다.' : '등록된 사이트가 없습니다. 사이트 추가를 눌러 주세요.'}</div></td></tr>`;
+}
+async function vaultSave(items, extra){
+  const sealed = await sealJSON(vaultKey, {items});
+  const ref = doc(db,'vault','main'); let next;
+  await runTransaction(db, async tx => {
+    const snap = await tx.get(ref), cur = snap.exists() ? snap.data() : null;
+    if(!cur || (cur.rev||0) !== vaultRev) throw new Error('STALE');          // 그 사이 다른 사람이 고쳤다
+    next = {...cur, ...sealed, ...(extra||{}), rev:vaultRev+1, updatedBy:me.email, updatedAt:new Date().toISOString()};
+    tx.set(ref, next);
+  });
+  vault = next; vaultRev = next.rev; vaultItems = items;
+}
+async function vaultAct(fn){
+  try{ await fn(); }
+  catch(err){
+    if(err && err.message==='STALE'){ alert('그 사이 다른 사람이 계정 정보를 고쳤습니다. 최신 내용을 불러왔으니 다시 시도해 주세요.'); vaultSynced(); }
+    else{ console.error('계정 저장 실패', err && err.code || err && err.name); alert('저장하지 못했습니다. 다시 시도해 주세요.\n' + ((err && err.code) || '')); }
+    return false;
+  }
+  return true;
+}
+// 다른 곳에서 vault가 바뀌었을 때(또는 지워졌을 때) 맞춰 준다
+async function vaultSynced(){
+  if(vaultKey){
+    if(!vault) return lockVault('계정 정보가 삭제되어 잠겼습니다.');
+    if((vault.rev||0) !== vaultRev){
+      try{ const d = await openJSON(vaultKey, vault); vaultItems = d.items || []; vaultRev = vault.rev||0; }
+      catch(e){ return lockVault('비밀번호가 바뀌어 잠겼습니다. 새 비밀번호로 다시 여십시오.'); }
+    }
+  }
+  if(curTab==='acc') renderAcc();
+}
+const vaultBusy = (btn, on) => { btn.disabled = on; if(on){ btn.dataset.t = btn.textContent; btn.textContent = '처리 중…'; } else if(btn.dataset.t) btn.textContent = btn.dataset.t; };
+const pwProblem = (a, b) => a.length < 8 ? '비밀번호는 8자 이상으로 정해 주세요.' : a!==b ? '두 비밀번호가 서로 다릅니다.' : '';
+
+$('#asOk').onclick = async () => {
+  const a = $('#asPw1').value, b = $('#asPw2').value, bad = pwProblem(a,b);
+  if(bad){ $('#asErr').textContent = bad; return; }
+  vaultBusy($('#asOk'), true);
+  try{
+    const salt = crypto.getRandomValues(new Uint8Array(16)), key = await deriveKey(a, salt, VAULT_ITER);
+    const doc0 = {v:1, iter:VAULT_ITER, salt:b64(salt), ...(await sealJSON(key,{items:[]})), rev:1, updatedBy:me.email, updatedAt:new Date().toISOString()};
+    const ref = doc(db,'vault','main');
+    await runTransaction(db, async tx => { if((await tx.get(ref)).exists()) throw new Error('EXISTS'); tx.set(ref, doc0); });
+    vault = doc0; vaultKey = key; vaultItems = []; vaultRev = 1; vaultLast = Date.now();
+    $('#asPw1').value = $('#asPw2').value = ''; renderAcc();
+  }catch(err){ $('#asErr').textContent = err && err.message==='EXISTS' ? '이미 다른 사람이 비밀번호를 정했습니다. 그 비밀번호로 여십시오.' : '만들지 못했습니다. 다시 시도해 주세요.'; }
+  vaultBusy($('#asOk'), false);
+};
+$('#alOk').onclick = async () => {
+  const pw = $('#alPw').value; if(!pw || !vault) return;
+  vaultBusy($('#alOk'), true);
+  try{
+    const key = await deriveKey(pw, unb64(vault.salt), vault.iter || VAULT_ITER);
+    const d = await openJSON(key, vault);
+    vaultKey = key; vaultItems = d.items || []; vaultRev = vault.rev || 0; vaultLast = Date.now();
+    $('#alPw').value = ''; renderAcc();
+  }catch(e){ $('#alErr').textContent = '비밀번호가 맞지 않습니다.'; $('#alPw').select(); }
+  vaultBusy($('#alOk'), false);
+};
+['alPw'].forEach(i => $('#'+i).addEventListener('keydown', e => { if(e.key==='Enter') $('#alOk').click(); }));
+['asPw2'].forEach(i => $('#'+i).addEventListener('keydown', e => { if(e.key==='Enter') $('#asOk').click(); }));
+$('#acLock').onclick = () => lockVault();
+$('#acQ').oninput = renderAccList;
+
+// 사이트 추가·수정
+function openAcc(id){
+  accEditId = id || null;
+  const x = vaultItems.find(v => v.id===id) || {};
+  $('#amTitle').textContent = id ? '사이트 수정' : '사이트 추가';
+  $('#amSite').value = x.site||''; $('#amUrl').value = x.url||''; $('#amId').value = x.user||''; $('#amPw').value = x.pw||''; $('#amMemo').value = x.memo||'';
+  $('#amPw').type = 'password'; $('#amShow').checked = false; $('#amDel').hidden = !id;
+  $('#amSites').innerHTML = SITE_ORDER.map(n => `<option value="${esc(n)}">`).join('');
+  $('#accModal').classList.add('on'); $('#amSite').focus();
+}
+$('#acAdd').onclick = () => openAcc();
+$('#amShow').onchange = e => { $('#amPw').type = e.target.checked ? 'text' : 'password'; };
+$('#amOk').onclick = async () => {
+  const site = $('#amSite').value.trim(); if(!site){ $('#amSite').focus(); return; }
+  const url = normUrl($('#amUrl').value);
+  if(url===null){ alert('주소가 올바르지 않습니다. http:// 또는 https://로 시작하는 웹사이트 주소를 적어 주세요.'); $('#amUrl').focus(); return; }
+  const item = {id:accEditId || newId(), site, url, user:$('#amId').value.trim(), pw:$('#amPw').value, memo:$('#amMemo').value.trim()};
+  const items = accEditId ? vaultItems.map(v => v.id===accEditId ? item : v) : [...vaultItems, item];
+  vaultBusy($('#amOk'), true);
+  const ok = await vaultAct(() => vaultSave(items));
+  vaultBusy($('#amOk'), false);
+  if(ok){ $('#accModal').classList.remove('on'); clearAccForm(); toast('저장했습니다'); renderAccList(); }
+};
+$('#amDel').onclick = async () => {
+  const x = vaultItems.find(v => v.id===accEditId); if(!x) return;
+  if(!confirm(`"${x.site}" 계정 정보를 삭제합니다.`)) return;
+  const ok = await vaultAct(() => vaultSave(vaultItems.filter(v => v.id!==accEditId)));
+  if(ok){ $('#accModal').classList.remove('on'); clearAccForm(); toast('삭제했습니다'); renderAccList(); }
+};
+$('#acBody').addEventListener('click', e => {
+  const tr = e.target.closest('tr'); if(!tr || !tr.dataset.id) return;
+  const x = vaultItems.find(v => v.id===tr.dataset.id); if(!x) return;
+  if(e.target.closest('[data-edit]')){ openAcc(x.id); return; }
+  const cp = e.target.closest('[data-cp]'); if(cp){ copyText(x[cp.dataset.cp]); return; }
+  if(e.target.closest('[data-see]')){
+    if(accShown.has(x.id)) accShown.delete(x.id);
+    else{ accShown.add(x.id); setTimeout(() => { accShown.delete(x.id); if(vaultKey && curTab==='acc') renderAccList(); }, 10000); }   // 10초 뒤 다시 가린다
+    renderAccList();
+  }
+});
+
+// 비밀번호 바꾸기: 새 비밀번호로 새로 암호화한다
+$('#acChg').onclick = () => { ['apOld','apNew1','apNew2'].forEach(i => $('#'+i).value = ''); $('#apErr').textContent = ''; $('#accPwModal').classList.add('on'); $('#apOld').focus(); };
+$('#apOk').onclick = async () => {
+  const old = $('#apOld').value, a = $('#apNew1').value, b = $('#apNew2').value, bad = pwProblem(a,b);
+  if(!old){ $('#apErr').textContent = '지금 비밀번호를 적어 주세요.'; return; }
+  if(bad){ $('#apErr').textContent = bad; return; }
+  vaultBusy($('#apOk'), true);
+  try{
+    await openJSON(await deriveKey(old, unb64(vault.salt), vault.iter || VAULT_ITER), vault);          // 지금 비밀번호 확인
+  }catch(e){ $('#apErr').textContent = '지금 비밀번호가 맞지 않습니다.'; vaultBusy($('#apOk'), false); return; }
+  const salt = crypto.getRandomValues(new Uint8Array(16)), newKey = await deriveKey(a, salt, VAULT_ITER), oldKey = vaultKey;
+  vaultKey = newKey;
+  const ok = await vaultAct(() => vaultSave(vaultItems, {salt:b64(salt), iter:VAULT_ITER}));
+  if(!ok) vaultKey = oldKey;
+  vaultBusy($('#apOk'), false);
+  if(ok){ $('#accPwModal').classList.remove('on'); toast('비밀번호를 바꿨습니다. 다른 사람에게는 새 비밀번호를 알려 주세요.'); }
+};
+
+// 10분 동안 아무것도 안 하면 잠근다
+['mousemove','keydown','click','touchstart','scroll'].forEach(ev => document.addEventListener(ev, () => { vaultLast = Date.now(); }, {passive:true}));
+setInterval(() => { if(vaultKey && Date.now() - vaultLast > IDLE_MS) lockVault('10분 동안 사용하지 않아 잠겼습니다.'); }, 15000);
+
+const clearAccForm = () => ['amSite','amUrl','amId','amPw','amMemo'].forEach(i => { $('#'+i).value = ''; });
+$('#accModal').addEventListener('click', e => { if(e.target===$('#accModal') || e.target.closest('[data-close]')) clearAccForm(); });
+document.addEventListener('keydown', e => { if(e.key==='Escape') clearAccForm(); });
 
 // ── 모달 닫기
 function updateScrollNotes(){
