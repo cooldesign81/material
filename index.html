@@ -43,6 +43,13 @@ h3{font-size:14px;font-weight:700;color:var(--ink);margin:0 0 8px}
 .btn{font-family:inherit;font-size:14px;font-weight:600;border-radius:var(--r-btn);padding:9px 16px;cursor:pointer;border:1px solid transparent}
 .btn-primary{background:var(--brand-orange);color:#fff}
 .btn-primary:hover{filter:brightness(.93)}
+/* 로그인 안내 (JP ONE 직원 계정 명단에 있는 구글 계정만) */
+#gate{position:fixed;inset:0;z-index:200;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:16px}
+#gate[hidden]{display:none}
+#gate .box{background:#fff;border:1px solid var(--line);border-radius:var(--r-card);padding:28px 24px;max-width:380px;width:100%;text-align:center;display:grid;gap:12px}
+#gate h1{font-size:20px;font-weight:800;color:var(--ink);margin:0}
+#gate p{margin:0;font-size:14px;line-height:1.6;color:var(--text)}
+#gate .err{color:#C62828;font-size:13px}
 .btn-primary:disabled{background:#D8D8D8;color:#fff;cursor:not-allowed}
 .btn-sec{background:#fff;border-color:var(--line);color:var(--text)}
 .btn-sec:hover{background:#FAFAFA}
@@ -237,6 +244,10 @@ tr.grp:hover td{background:#BFD0E4}
   <span><b id="whoami">로그인 필요</b> · <span id="today"></span></span>
 </div>
 
+<div id="gate"><div class="box"><h1>재료 요청</h1>
+  <p>JP ONE 직원 계정(구글)으로 들어와요.<br>처음 한 번만 누르면 이 기기에서는 계속 로그인돼 있어요.</p>
+  <button class="btn btn-primary" id="gateBtn" type="button">구글로 로그인</button>
+  <p class="err" id="gateErr"></p></div></div>
 <div class="appbar">
   <div class="logo">자라다 재료</div>
   <nav>
@@ -602,7 +613,7 @@ tr.grp:hover td{background:#BFD0E4}
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged }
   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { getFirestore, collection, doc, setDoc, addDoc, deleteDoc, updateDoc,
+import { getFirestore, collection, doc, getDoc, setDoc, addDoc, deleteDoc, updateDoc,
   onSnapshot, getDocs, writeBatch, serverTimestamp, query, orderBy }
   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
@@ -704,7 +715,26 @@ const CATS = [...new Set(SEED.map(m=>m.cat))].sort();
 $('#today').textContent = new Date().toLocaleDateString('ko-KR',{month:'long',day:'numeric',weekday:'short'});
 
 // ── 인증
+// JP ONE '앱에 명단 보내기'가 만든 출입 명단(jpAccess/{이메일})에 있어야 들어옴. 보안 규칙도 같은 명단을 봄
+const SUPER = ['jinhyuck@gmail.com'];
+async function allowed(u){
+  const em = (u.email || '').toLowerCase();
+  if (SUPER.includes(em)) return true;
+  // 새 보안 규칙을 게시하기 전에는 명단을 읽을 수 없음(permission-denied) → 예전처럼 들여보냄. 게시 뒤에는 규칙이 막음
+  try { return (await getDoc(doc(db, 'jpAccess', em))).exists(); } catch(e){ return e.code === 'permission-denied'; }
+}
+$('#gateBtn').onclick = async () => {
+  $('#gateErr').textContent = '';
+  try { await signInWithPopup(auth, new GoogleAuthProvider()); }
+  catch(e){ if (e.code !== 'auth/popup-closed-by-user') $('#gateErr').textContent = '로그인하지 못했어요. 다시 시도해 주세요.'; }
+};
 onAuthStateChanged(auth, async u => {
+  if (u && !(await allowed(u))) {
+    const em = u.email; await signOut(auth);
+    $('#gateErr').textContent = `${em} 계정은 JP ONE 직원 계정 명단에 없어요. 관리자에게 등록을 요청해 주세요.`;
+    return;
+  }
+  $('#gate').hidden = !!u;
   me = u;
   $('#whoami').textContent = u ? u.email : '로그인 필요';
   $('#authBtn').textContent = u ? '로그아웃' : '로그인';

@@ -1,0 +1,23 @@
+rules_version = '2';
+// 자라다 재료 요청 (jarada-materials) — Firestore 보안 규칙
+// 들어올 수 있는 사람: JP ONE '직원 계정 → 앱에 명단 보내기'가 만든 jpAccess/{구글 이메일} 에 있는 구글 계정 + 대표
+// 명단은 JP ONE에서만 고쳐요(대표 구글 계정). 앱 안에서는 읽기만.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() { return request.auth != null; }
+    function email()    { return ('email' in request.auth.token) ? request.auth.token.email.lower() : ''; }
+    function isGoogle() { return signedIn() && request.auth.token.firebase.sign_in_provider == 'google.com' && request.auth.token.email_verified == true; }
+    function isSuper()  { return isGoogle() && email() == 'jinhyuck@gmail.com'; }
+    function isListed() { return isGoogle() && exists(/databases/$(database)/documents/jpAccess/$(email())); }
+    function isStaff()  { return isSuper() || isListed(); }
+
+    // 출입 명단: 본인 문서는 읽기(앱이 들어올 수 있는지 확인), 전체 읽기·쓰기는 대표만
+    match /jpAccess/{mail} {
+      allow get: if signedIn() && (mail == email() || isSuper());
+      allow list, write: if isSuper();
+    }
+    // 재료 목록 · 요청: 명단에 있는 직원이 읽고 씀
+    match /materials/{id} { allow read, write: if isStaff(); }
+    match /requests/{id}  { allow read, write: if isStaff(); }
+  }
+}
