@@ -721,7 +721,8 @@ async function allowed(u){
   const em = (u.email || '').toLowerCase();
   if (SUPER.includes(em)) return true;
   // 새 보안 규칙을 게시하기 전에는 명단을 읽을 수 없음(permission-denied) → 예전처럼 들여보냄. 게시 뒤에는 규칙이 막음
-  try { return (await getDoc(doc(db, 'jpAccess', em))).exists(); } catch(e){ return e.code === 'permission-denied'; }
+  // 그 밖의 오류(인터넷 끊김 등)는 null → 로그아웃시키지 않고 다시 시도하게 함
+  try { return (await getDoc(doc(db, 'jpAccess', em))).exists(); } catch(e){ return e.code === 'permission-denied' ? true : null; }
 }
 $('#gateBtn').onclick = async () => {
   $('#gateErr').textContent = '';
@@ -729,7 +730,12 @@ $('#gateBtn').onclick = async () => {
   catch(e){ if (e.code !== 'auth/popup-closed-by-user') $('#gateErr').textContent = '로그인하지 못했어요. 다시 시도해 주세요.'; }
 };
 onAuthStateChanged(auth, async u => {
-  if (u && !(await allowed(u))) {
+  const ok = u ? await allowed(u) : false;
+  if (u && ok === null) {
+    $('#gate').hidden = false; $('#gateErr').textContent = '명단을 확인하지 못했어요. 인터넷 연결을 확인하고 새로고침해 주세요.';
+    return;
+  }
+  if (u && !ok) {
     const em = u.email; await signOut(auth);
     $('#gateErr').textContent = `${em} 계정은 JP ONE 직원 계정 명단에 없어요. 관리자에게 등록을 요청해 주세요.`;
     return;
