@@ -25,6 +25,9 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
 /* ── 크롬 3단 ── */
 .topbar{background:var(--ink-deep);color:#C9C9C9;font-size:12px;padding:6px 16px;display:flex;gap:16px;align-items:center;justify-content:space-between}
 .topbar b{color:#fff;font-weight:600}
+.topbar[hidden],.appbar[hidden]{display:none!important}
+.jp-tool{max-width:1280px;margin:0 auto;padding:12px 16px 0!important}
+.jp-tool + main{padding-top:12px}
 .appbar{background:var(--brand-yellow);color:var(--ink);padding:0 16px;display:flex;align-items:center;gap:24px;position:sticky;top:0;z-index:20}
 .appbar .logo{font-weight:800;font-size:17px;padding:12px 0;letter-spacing:-.02em;white-space:nowrap}
 .appbar nav{display:flex;gap:4px;flex:1}
@@ -232,14 +235,16 @@ tr.grp:hover td{background:#BFD0E4}
   .appbar nav button{padding:12px 10px;font-size:14px}
 }
 @media print{
-  .appbar,.topbar,.cart,.filters,.chips,.btn{display:none!important}
+  .appbar,.topbar,#jpHeader,.jp-tool,.cart,.filters,.chips,.btn{display:none!important}
   body{font-size:11px}
 }
 </style>
 </head>
 <body>
 
-<div class="topbar">
+<div id="jpHeader"></div>
+<!-- 예전 상단: 앱 코드가 그대로 쓰도록 숨겨 두고, 아래 연결 스크립트가 공통 상단에 옮겨 그림 -->
+<div class="topbar" hidden>
   <span>자라다 재료 요청 · 3개 원 통합</span>
   <span><b id="whoami">로그인 필요</b> · <span id="today"></span></span>
 </div>
@@ -248,7 +253,7 @@ tr.grp:hover td{background:#BFD0E4}
   <p>JP ONE 직원 계정(구글)으로 들어와요.<br>처음 한 번만 누르면 이 기기에서는 계속 로그인돼 있어요.</p>
   <button class="btn btn-primary" id="gateBtn" type="button">구글로 로그인</button>
   <p class="err" id="gateErr"></p></div></div>
-<div class="appbar">
+<div class="appbar" hidden>
   <div class="logo">자라다 재료</div>
   <nav>
     <button data-tab="req" aria-current="page">온라인 주문요청<span class="badge-count" id="reqBadge" hidden></span></button>
@@ -258,9 +263,11 @@ tr.grp:hover td{background:#BFD0E4}
     <button data-tab="cat">품목관리</button>
   </nav>
   <div class="who">
-    <div class="seg" id="thumbSeg" role="group" aria-label="사진 크기"><span class="seg-l">사진</span>
-      <button type="button" data-s="S" aria-pressed="false">작게</button><button type="button" data-s="M" aria-pressed="true">보통</button><button type="button" data-s="L" aria-pressed="false">크게</button></div>
     <button class="btn btn-sec btn-sm" id="authBtn">로그인</button></div>
+</div>
+<div class="jp-tool"><span class="sp"></span>
+  <div class="seg" id="thumbSeg" role="group" aria-label="사진 크기"><span class="seg-l">사진</span>
+    <button type="button" data-s="S" aria-pressed="false">작게</button><button type="button" data-s="M" aria-pressed="true">보통</button><button type="button" data-s="L" aria-pressed="false">크게</button></div>
 </div>
 
 <main>
@@ -2244,6 +2251,28 @@ document.querySelectorAll('.modal').forEach(m => {
 document.addEventListener('keydown', e => {
   if(e.key==='Escape') document.querySelectorAll('.modal.on').forEach(m=>m.classList.remove('on'));
 });
+</script>
+<!-- 공통 상단 (JP ONE shared/jp-header.js) -->
+<script src="https://cooldesign81.github.io/jarada-jpone/shared/jp-header.js?v=1"></script>
+<script>
+(function(){
+  if (!window.JPHeader) { document.querySelector('.topbar').hidden = false; document.querySelector('.appbar').hidden = false; return; }  // 못 불러오면 예전 상단
+  const q = s => document.querySelector(s), legacy = () => [...document.querySelectorAll('.appbar nav button')];
+  const hd = JPHeader.mount('#jpHeader', { app:'material', sub:'3개 원 통합',
+    onTab: id => legacy().find(b => b.dataset.tab === id)?.click() });
+  function sync(){
+    const tabs = legacy().map(b => { const bd = b.querySelector('.badge-count');
+      return { id:b.dataset.tab, label:(bd ? b.textContent.replace(bd.textContent, '') : b.textContent).trim(), badge: bd && !bd.hidden ? bd.textContent.trim() : '' }; });
+    const who = q('#whoami').textContent.trim(), inn = q('#authBtn').textContent.trim() === '로그아웃';
+    hd.update({ tabs, active: legacy().find(b => b.getAttribute('aria-current') === 'page')?.dataset.tab,
+      user: inn ? who : '', onLogout: inn ? () => q('#authBtn').click() : null });
+  }
+  let t = 0; const later = () => { clearTimeout(t); t = setTimeout(sync, 0); };
+  const mo = new MutationObserver(later);
+  mo.observe(q('.appbar'), { subtree:true, childList:true, characterData:true, attributes:true, attributeFilter:['aria-current','hidden'] });
+  mo.observe(q('.topbar'), { subtree:true, childList:true, characterData:true });
+  sync();
+})();
 </script>
 </body>
 </html>
