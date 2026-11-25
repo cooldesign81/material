@@ -16,6 +16,21 @@ service cloud.firestore {
       allow get: if signedIn() && (mail == email() || isSuper());
       allow list, write: if isSuper();
     }
+    // 재료 관리자(계정관리 탭을 쓸 사람): JP People → 관리 → 설정 → '재료 관리자' 카드에서 대표가 지정 → config/materialManagers { emails: [...] }
+    function isMatManager() {
+      return isGoogle() && exists(/databases/$(database)/documents/config/materialManagers)
+        && email() in get(/databases/$(database)/documents/config/materialManagers).data.get('emails', []);
+    }
+    match /config/materialManagers {
+      allow read: if isSuper() || isMatManager();
+      allow write: if isSuper()
+        && request.resource.data.keys().hasOnly(['emails', 'updatedBy', 'updatedAt'])
+        && request.resource.data.emails is list && request.resource.data.emails.size() <= 20;
+    }
+    // 계정관리 보관함: 쇼핑몰 로그인 정보를 계정관리 비밀번호로 암호화한 글만 저장 (vault/main). 재료 관리자와 대표만
+    match /vault/{docId} {
+      allow read, write: if isSuper() || isMatManager();
+    }
     // 재료 목록 · 요청: 명단에 있는 직원이 읽고 씀
     match /materials/{id} { allow read, write: if isStaff(); }
     match /requests/{id}  { allow read, write: if isStaff(); }
