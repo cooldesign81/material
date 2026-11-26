@@ -692,7 +692,7 @@ tr.grp:hover td{background:#BFD0E4}
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged }
+import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged, signInWithCredential }
   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { getFirestore, collection, doc, getDoc, setDoc, addDoc, deleteDoc, updateDoc,
   onSnapshot, getDocs, writeBatch, serverTimestamp, query, orderBy, runTransaction }
@@ -816,7 +816,8 @@ function gate(show, err){
     if (JPLogin.open && !d && !err) return;
     JPLogin.show({ app:'material', lead:'JP ONE 직원 계정(구글)으로 들어와요',
       google: () => signInWithPopup(auth, new GoogleAuthProvider()), denied: d, error: err || '',
-      onSwitch: () => signInWithPopup(auth, pickAcct()) });
+      onSwitch: () => signInWithPopup(auth, pickAcct()),
+      sso: t => signInWithCredential(auth, GoogleAuthProvider.credential(null, t)) });   // JP ONE 구글 로그인 이어받기
     return;
   }
   $('#gate').hidden = !show; if (err != null) $('#gateErr').textContent = err;
@@ -827,6 +828,7 @@ $('#gateBtn').onclick = async () => {
   catch(e){ if (e.code !== 'auth/popup-closed-by-user') $('#gateErr').textContent = '로그인하지 못했어요. 다시 시도해 주세요.'; }
 };
 onAuthStateChanged(auth, async u => {
+  if (u && window.JPLogin?.guard && !JPLogin.guard(u, () => signOut(auth))) return;   // JP ONE에서 로그아웃했으면 같이 나감
   const ok = u ? await allowed(u) : false;
   if (u && ok === null) {
     gate(true, '명단을 확인하지 못했어요. 인터넷 연결을 확인하고 새로고침해 주세요.');
@@ -2560,7 +2562,7 @@ document.addEventListener('keydown', e => {
 </script>
 <!-- 공통 상단 (JP ONE shared/jp-header.js) -->
 <script src="https://cooldesign81.github.io/jarada-jpone/shared/jp-header.js?v=1"></script>
-<script src="https://cooldesign81.github.io/jarada-jpone/shared/jp-login.js?v=1"></script>
+<script src="https://cooldesign81.github.io/jarada-jpone/shared/jp-login.js?v=2"></script>
 <script>
 (function(){
   if (!window.JPHeader) { document.querySelector('.topbar').hidden = false; document.querySelector('.appbar').hidden = false; return; }  // 못 불러오면 예전 상단
