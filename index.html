@@ -817,7 +817,7 @@ function gate(show, err){
     JPLogin.show({ app:'material', lead:'JP ONE 직원 계정(구글)으로 들어와요',
       google: () => signInWithPopup(auth, new GoogleAuthProvider()), denied: d, error: err || '',
       onSwitch: () => signInWithPopup(auth, pickAcct()),
-      sso: t => signInWithCredential(auth, GoogleAuthProvider.credential(null, t)) });   // JP ONE 구글 로그인 이어받기
+      sso: (t, i) => signInWithCredential(auth, GoogleAuthProvider.credential(i || null, t)) });   // JP ONE 구글 로그인 이어받기
     return;
   }
   $('#gate').hidden = !show; if (err != null) $('#gateErr').textContent = err;
